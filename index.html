@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SK Marketplace</title> <!-- Changed title as per your last HTML -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Cleveland Marketplace</h1> <!-- Changed H1 as per your last HTML -->
+        <h2>Buy and Sell Items by posting them here!</h2> <!-- Added H2 as per your last HTML -->
+        <button id="postItemBtn">Post New Item</button>
+    </header>
+
+    <main>
+        <h2>Listings</h2>
+        <div id="listingsContainer">
+            <!-- Listings will be dynamically added here by JavaScript -->
+            <p>Loading listings...</p>
+        </div>
+    </main>
+
+    <!-- Modal for POSTING a new item (initially hidden) -->
+    <div id="postItemModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-button" id="closePostModalBtn">×</span> <!-- Added ID -->
+            <h2>Post Your Item</h2>
+            <form id="postItemForm">
+                <div>
+                    <label for="itemName">Item Name:</label>
+                    <input type="text" id="itemName" name="itemName" required>
+                </div>
+                <div>
+                    <label for="itemDescription">Description:</label>
+                    <textarea id="itemDescription" name="itemDescription" required></textarea>
+                </div>
+                <div>
+                    <label for="itemPrice">Price (e.g., $10 or Free):</label>
+                    <input type="text" id="itemPrice" name="itemPrice" required>
+                </div>
+                <div>
+                    <label for="itemContact">Contact Info (Email/Phone):</label>
+                    <input type="text" id="itemContact" name="itemContact" required>
+                </div>
+                <div>
+                    <label for="itemImage">Image:</label>
+                    <input type="file" id="itemImage" name="itemImage" accept="image/*" required>
+                </div>
+                <button type="submit">Post Item</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal for EDITING an existing item (initially hidden) -->
+    <div id="editItemModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close-button" id="closeEditModalBtn">×</span> <!-- Added ID -->
+            <h2>Edit Your Item</h2>
+            <form id="editItemForm">
+                <input type="hidden" id="editItemId" name="editItemId"> <!-- To store the ID of the item being edited -->
+                <div>
+                    <label for="editItemName">Item Name:</label>
+                    <input type="text" id="editItemName" name="editItemName" required>
+                </div>
+                <div>
+                    <label for="editItemDescription">Description:</label>
+                    <textarea id="editItemDescription" name="editItemDescription" required></textarea>
+                </div>
+                <div>
+                    <label for="editItemPrice">Price (e.g., $10 or Free):</label>
+                    <input type="text" id="editItemPrice" name="editItemPrice" required>
+                </div>
+                <div>
+                    <label for="editItemContact">Contact Info (Email/Phone):</label>
+                    <input type="text" id="editItemContact" name="editItemContact" required>
+                </div>
+                <div>
+                    <p>Current Image (Image editing not supported in this version):</p>
+                    <img id="editItemCurrentImage" src="" alt="Current item image" style="max-width: 100px; max-height: 100px; margin-bottom: 10px;">
+                </div>
+                <button type="submit">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Supabase SDK - Specific UMD Version -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.43.4/dist/umd/supabase.min.js"></script>
+
+    <!-- Your main marketplace script -->
+    <script src="script.js"></script>
+</body>
+</html>
