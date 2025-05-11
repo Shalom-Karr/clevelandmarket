@@ -1,0 +1,359 @@
+========================================
+Project: Cleveland Marketplace
+Explanation Date: [Current Date]
+========================================
+
+This document provides a detailed explanation of the HTML, CSS, JavaScript, and Supabase SQL setup for the Cleveland Marketplace application.
+
+----------------------------------------
+I. Supabase SQL Setup (DATABASE_SETUP.sql - This should be run first)
+----------------------------------------
+
+**Overall Goal:** Set up the necessary database tables, relationships, views for efficient data retrieval, row-level security policies for data protection, and triggers for automatic actions (like profile creation).
+
+**1. `profiles` Table:**
+   - **Purpose:** Stores public user information linked to their authenticated identity in `auth.users`. Used for display names (usernames) and emails.
+   - **Columns:**
+     - `id (UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE)`: The user's authentication ID. Primary key, and if the auth user is deleted, their profile is also deleted.
+     - `email (TEXT UNIQUE)`: User's email, copied from `auth.users`. Marked unique.
+     - `username (TEXT UNIQUE)`: User's chosen display name. Marked unique.
+     - `updated_at (TIMESTAMPTZ DEFAULT timezone('utc'::text, now()))`: Timestamp for when the profile was last updated.
+   - **RLS:**
+     - "Public profiles are viewable by everyone.": Allows anyone to read profile data (needed to display usernames/emails).
+     - "Users can update own profile.": Allows a logged-in user to update only their own profile.
+     - "Users can insert their own profile.": Allows a logged-in user to insert their own profile record (mainly for the `upsert` in `handleEditProfile` if the trigger failed).
+   - **Indexes:** On `email` and `username` for faster lookups.
+
+**2. `handle_new_user()` Function and Trigger:**
+   - **Purpose:** Automatically creates a new row in the `public.profiles` table whenever a new user signs up and is added to the `auth.users` table.
+   - **Logic:**
+     - Triggered `AFTER INSERT ON auth.users`.
+     - Inserts `NEW.id` (the new user's ID), `NEW.email` into `profiles`.
+     - Attempts to get a `username` from `NEW.raw_user_meta_data->>'username'` (this metadata is sent from the client during signup).
+   - **`SECURITY DEFINER`:** The function runs with the privileges of the user who defined it (usually `postgres`), allowing it to insert into `public.profiles`.
+
+**3. `listings` Table:**
+   - **Purpose:** Stores all the item listings.
+   - **Columns:**
+     - `id (UUID DEFAULT gen_random_uuid() PRIMARY KEY)`: Unique identifier for each listing.
+     - `name (TEXT)`: Item name.
+     - `description (TEXT)`: Item description.
+     - `price (TEXT)`: Item price. Stored as text to accommodate "Free" or formatted strings like "$25.00". For numeric filtering/sorting, a `NUMERIC` type would be better, requiring client-side logic to handle "Free" as 0.
+     - `contact_info (TEXT)`: Seller's contact information.
+     - `image_url (TEXT)`: URL of the item's image.
+     - `user_id (UUID REFERENCES auth.users(id) ON DELETE CASCADE DEFAULT auth.uid())`: Foreign key to `auth.users`, indicating the owner of the listing. Defaults to the ID of the user creating the listing.
+     - `created_at (TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL)`: Timestamp of listing creation.
+   - **RLS:**
+     - "Allow public read access on listings": Anyone can view listings.
+     - "Allow authenticated users to insert listings": Logged-in users can create listings (RLS checks `auth.uid() = user_id`).
+     - "Allow users to update own or superadmin to update any listings": Owner or Superadmin can update.
+     - "Allow users to delete own or superadmin to delete any listings": Owner or Superadmin can delete.
+   - **Indexes:** On `user_id` and `created_at` for common query patterns.
+
+**4. `comments` Table:**
+   - **Purpose:** Stores comments made on listings.
+   - **Columns:**
+     - `id (UUID DEFAULT gen_random_uuid() PRIMARY KEY)`: Unique comment ID.
+     - `listing_id (UUID NOT NULL REFERENCES public.listings(id) ON DELETE CASCADE)`: Links comment to a listing. If listing is deleted, comments are deleted.
+     - `user_id (UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE)`: Links comment to the user who posted it.
+     - `content (TEXT NOT NULL CHECK (char_length(content) > 0 AND char_length(content) < 5000))`: The comment text, with length constraints.
+     - `created_at (TIMESTAMPTZ DEFAULT timezone('utc'::text, now()) NOT NULL)`: Timestamp.
+     - `parent_comment_id (UUID REFERENCES public.comments(id) ON DELETE CASCADE DEFAULT NULL)`: For future threaded replies.
+   - **RLS:**
+     - "Allow public read access on comments": Anyone can read comments.
+     - "Allow authenticated users to insert comments": Logged-in users can post comments (checks `auth.uid() = user_id`).
+     - "Allow users to delete own comments or superadmin to delete any comments": Comment owner or Superadmin can delete.
+   - **Indexes:** On `listing_id`, `user_id`, `parent_comment_id`.
+
+**5. Messaging Tables (`conversations`, `conversation_participants`, `messages`):**
+   - **`conversations`:**
+     - `id (UUID PRIMARY KEY)`: Unique conversation ID.
+     - `listing_id (UUID REFERENCES public.listings(id) ON DELETE SET NULL)`: Optionally links a conversation to a specific listing. If listing deleted, `listing_id` becomes `NULL` but conversation remains.
+     - `created_at`, `updated_at`: Timestamps. `updated_at` is modified by a trigger when a new message is added.
+   - **`conversation_participants`:**
+     - Links users to conversations (many-to-many).
+     - `conversation_id`, `user_id`: Foreign keys.
+     - `unique_conversation_user`: Ensures a user is only in a conversation once.
+   - **`messages`:**
+     - `conversation_id`, `sender_id`: Foreign keys.
+     - `content`: The message text.
+   - **RLS for Messaging:**
+     - Users can only select/view conversations and messages they are a participant in.
+     - Users can only insert messages into conversations they participate in, and as themselves.
+     - Superadmin has broader SELECT access via separate policies or by modifying existing ones with an `OR auth.uid() = 'SUPERADMIN_UUID'` clause.
+     - RPC functions with `SECURITY DEFINER` are used to handle the creation of conversations and adding participants correctly, bypassing some stricter client-side RLS for these initial setup actions.
+   - **`update_conversation_updated_at()` Trigger:** Automatically updates the `updated_at` timestamp of a conversation whenever a new message is inserted into it. This is useful for sorting conversations by recent activity.
+
+**6. VIEWS (`listings_with_author_info`, `comments_with_commenter_info`, `admin_conversations_overview`):**
+   - **Purpose:** To simplify client-side queries by pre-joining tables. This avoids complex join syntax in JavaScript and potential issues with PostgREST's automatic relationship detection, especially for multi-level joins.
+   - **`listings_with_author_info`:** Joins `listings` with `profiles` to easily get `author_email` and `author_username` for each listing.
+   - **`comments_with_commenter_info`:** Joins `comments` with `profiles` to get `commenter_email` and `commenter_username`.
+   - **`admin_conversations_overview`:** Provides a comprehensive view of all conversations, their participants (with profile info), and last message details, specifically for the admin interface.
+   - **Grants:** `SELECT` permission is granted to `authenticated` and `anon` roles on these views.
+
+**7. GRANTS:**
+   - Standard grants are applied to ensure `authenticated` and `anon` roles can perform the actions allowed by RLS on tables and views.
+   - `postgres` and `service_role` (internal Supabase roles) are typically granted `ALL` for management purposes.
+
+----------------------------------------
+II. `index.html` - Structure and Key Elements
+----------------------------------------
+
+**Overall Structure:**
+- Standard HTML5 boilerplate.
+- Links `style.css`.
+- Includes Google Analytics gtag.js script (with `send_page_view: false` for SPA manual tracking).
+- Contains `header`, `main`, modal `div`s, and a `toastNotification` div.
+- Loads Supabase JS SDK and `script.js` at the end of the `body`.
+
+**`<header>`:**
+  - `#authContainer`: Holds login, signup, user email, edit profile, my messages, admin messages, and logout buttons. Visibility is controlled by JavaScript based on login state and admin status.
+  - `.header-main-content`: Wrapper for `<h1>`, `<h2>`, and `#postItemBtn` to aid in centering and layout, especially with the absolutely positioned `#authContainer`.
+  - `<h1>Cleveland Marketplace</h1>`: Main site title.
+  - `<h2>Buy and sell items by posting them here.</h2>`: Subtitle.
+  - `#postItemBtn`: Button to open the "Post New Item" modal.
+
+**`<main>`:**
+  - `#mainListingsView`: Contains all elements related to displaying listings (title, search, filters, listing cards, load more). This view is hidden when item details or messages are shown.
+    - `.listings-header-controls`: New wrapper for the "Listings" title and the search bar to manage their layout together.
+      - `<h2 id="listingsSectionTitle">`: Title for the listings section.
+      - `.search-container`: Wraps the `#searchBar`.
+    - `.filter-sort-controls`: Container for price filters, free item checkbox, sort dropdown, and apply button. Currently hidden by CSS.
+    - `#listingsContainer`: Grid container where individual listing cards are dynamically populated by JavaScript.
+    - `.load-more-container`: Holds the `#loadMoreBtn`.
+  - `#itemDetailView`: Initially hidden. Displays details of a single selected item.
+    - `#backToListingsBtnFromDetail`: Button to navigate back to the main listings.
+    - `#itemDetailContent`: Inner div where specific item details (image, name, price, description, contact, seller info, posted date) are populated by JavaScript.
+        - Contains specific `id`ed elements like `detailItemImage`, `detailItemName`, etc. for JS to target.
+        - `.image-detail-wrapper` and `.no-image-placeholder-detail` for robust image display.
+    - `#messageSellerBtn`: Button to initiate a direct message with the item's seller.
+    - `#itemCommentsSection`: Container for the comments list and the "add comment" form for the displayed item.
+        - `#commentsList`: Where comments are dynamically rendered.
+        - `#addCommentForm`: Form for logged-in users to post new comments.
+  - `#messagesView`: Initially hidden. For displaying user's conversations and messages.
+    - `#backToListingsFromMessagesBtn`: Navigates back.
+    - `<h2>My Messages</h2>`
+    - `.messages-layout`: Flex container for side-by-side conversation list and chat panel.
+      - `#conversationsListPanel`: Left panel showing list of user's conversations.
+        - `#conversationsListInner`: Where conversation items are rendered.
+      - `#messageChatPanel`: Right panel to display messages of a selected conversation.
+        - `#chatWithInfo`: Displays who the current chat is with.
+        - `#messagesContainer`: Scrollable area for messages.
+        - `#sendMessageForm`: Form to send a new message.
+  - `#adminMessagesView`: Initially hidden. For Superadmin to view all site conversations.
+    - Similar structure to `#messagesView` but with different IDs for its list and chat panel (`adminConversationsListPanel`, `adminMessageChatPanel`, etc.).
+
+**Modals (General Structure: `<div class="modal" id="modalName">...<div class="modal-content">...</span><form>...`)**
+  - Common structure: outer `.modal` div for overlay and centering, inner `.modal-content` for the dialog box, a `span.close-button` (×), and a `form`.
+  - All modals are initially `style="display:none;"` and their visibility is toggled by JavaScript using direct style changes and adding/removing the `.modal-visible` class (for CSS transitions).
+  - **`#postItemModal`:**
+    - Form (`#postItemForm`) for creating new listings.
+    - Includes advanced price input (`.price-section`, `.price-input-wrapper`, `#postItemPriceField`, `#postItemFreeCheckbox`).
+    - Includes image source selection (`.image-source-options`, file input `#post_itemImageFile`, URL input `#post_itemImageUrlField`, image preview `#postItemImagePreview`).
+    - Submit button includes `span.button-text` and `span.button-spinner` for loading state.
+    - `.modal-processing-overlay`: For full modal loading state during submission.
+  - **`#editItemModal`:**
+    - Form (`#editItemForm`) for modifying existing listings.
+    - Includes hidden fields for `editItemId`, `editItemOwnerId`, `editItemOriginalImageUrl`.
+    - **Now includes the same advanced `.price-section` as the post modal.**
+    - **Now includes image change options** (`editImageSourceNone`, `editImageSourceFile_Edit`, `editImageSourceUrl_Edit`) and inputs/preview for a new image.
+    - Displays current image in `#editItemCurrentImage`.
+  - **`#signupModal`:**
+    - Form (`#signupForm`) for user registration.
+    - Includes "Display Name" field (`#signupDisplayName`).
+    - Link to switch to Login modal (`#switchToLoginLink`).
+  - **`#loginModal`:**
+    - Form (`#loginForm`) for user login.
+    - Link to switch to Signup modal (`#switchToSignupLink`).
+    - "Forgot Password?" link (`#forgotPasswordLink`).
+  - **`#editProfileModal`:**
+    - Form (`#editProfileForm`) for users to update their display name (`#profileUsername`).
+    - Email field (`#profileEmail`) is read-only.
+
+**`#toastNotification`:**
+  - Empty `div` at the bottom of the body, used by JavaScript to display temporary success/error messages.
+
+----------------------------------------
+III. `style.css` - Styling and Layout
+----------------------------------------
+
+**Overall Approach:**
+- Uses Arial as a base font.
+- Defines a basic color scheme (dark header, light body).
+- Implements responsive design using media queries.
+- Provides styles for all major components: header, listings, modals, forms, buttons, toasts, messages.
+
+**Key Sections:**
+
+1.  **Global & Base:** Basic resets (`body { margin: 0; }`), default font, background color.
+2.  **Header:**
+    - Dark background, white text.
+    - `display: flex`, `flex-direction: column`, `align-items: center` to manage centering of `.header-main-content`.
+    - `.header-main-content` uses `padding-top` (adjusted in media queries) to ensure main titles are not obscured by the absolutely positioned `#authContainer`.
+    - `#authContainer` is absolutely positioned top-right for auth buttons.
+    - `#postItemBtn` specific styling for its appearance (green, uppercase, shadow, hover effects).
+    - `.admin-button.top-right` is set to `display: none !important;`.
+3.  **Main Content & Listings Header Controls:**
+    - `main`: Basic padding.
+    - `.listings-header-controls`: Wrapper for "Listings" title and search. Uses flexbox to position title to the left of search on desktop, and stacks them (title on top) on mobile.
+    - `h2#listingsSectionTitle.section-title`: Styled to be less dominant than main header H1, adjusts alignment for desktop/mobile.
+    - `.search-container` & `#searchBar`: Centered search bar with rounded corners.
+    - `.filter-sort-controls`: Styled but set to `display: none;`.
+4.  **Listings Container & Cards:**
+    - `#listingsContainer`: CSS Grid, `repeat(auto-fill, minmax(280px, 1fr))` for responsive card sizing.
+    - `.listing-card`: White background, border, shadow, flex column layout. Enhanced hover effects (lift, scale, border highlight). `cursor: pointer;` added.
+    - Card internal elements (`img`, `h3`, `p`, `small`): Specific font sizes, margins, image height (`180px` default, `150px` on mobile). `.no-image-placeholder` styled.
+    - `.action-buttons` (Edit/Delete on cards): Styled with distinct colors (orange for edit, red for delete) and hover/focus states.
+5.  **Load More Button:** Centered, styled pill-shape button.
+6.  **Item Detail View (`#itemDetailView`):**
+    - Styles for the overall container, back button, main image (`.detail-view-image`), text elements (`#detailItemName`, `#detailItemPrice`, etc.), and seller info section.
+7.  **Comments Section (`#itemCommentsSection`):**
+    - Styles for the section title, individual comment bubbles (`.comment`), author name, date, content, and the "Leave a Comment" form (`#addCommentForm`, `textarea`). Delete comment button styled.
+8.  **Messages View (`#messagesView`, `#adminMessagesView`):**
+    - Basic layout using flex for side-by-side conversation list and chat panel.
+    - Styles for conversation items in the list (`.conversation-item`), active conversation highlight.
+    - Styles for the chat panel (`#messageChatPanel`), message bubbles (`.message-bubble.sent`, `.message-bubble.received`), sender name, message time, and message input form.
+9.  **Modals (General & Specific):**
+    - `.modal`: Full-screen overlay, flex centering, opacity transition for show/hide. `overflow-y: auto` for long modal content.
+    - `.modal-content`: Styled dialog box with border, shadow, and pop-in transition. `position: relative;` for child absolute positioning.
+    - `.close-button`: Absolutely positioned top-right.
+    - Form elements within modals: Consistent styling for labels, inputs, textareas, with focus states.
+    - Specific modal form elements (`.price-section`, `.image-source-options`, `#postItemImagePreview`, etc.) styled as per the "Liked CSS" version.
+    - Submit buttons (`button.button-primary`, `#postItemForm button[type="submit"]`): Include spinner structure, loading states, and hover/focus effects.
+    - `.modal-processing-overlay`: Full modal overlay with a large spinner for long operations.
+10. **Toast Notifications:** Fixed position at the bottom-center, styled for success, error, and info types, with show/hide transitions.
+11. **Media Queries:**
+    *   **`@media (max-width: 768px)` (Tablets):** Adjusts header padding, search controls layout (stacks title and search), listings grid, card internals, and messages view layout (stacks panels).
+    *   **`@media (max-width: 675px)`:** Specifically increases `padding-top` for `.header-main-content` to ensure H1 clears auth buttons.
+    *   **`@media (max-width: 480px)` (Mobiles):** Further refines header, search, listings grid (single column), card internals (shorter images, smaller fonts), modal content padding, and messaging panel heights.
+
+----------------------------------------
+IV. `script.js` - Functionality and Logic
+----------------------------------------
+
+**Overall Structure:**
+- Supabase client initialization.
+- Global state variables (currentUser, isSuperAdmin, pagination/filter/sort states, current open item/conversation).
+- Element references obtained via `getElement()`.
+- Helper functions (`showToast`, `showModal`, `hideModal`, `showButtonLoadingState`, modal reset functions).
+- Core logic organized into sections: Auth, CRUD for Listings, Item Detail Page, Comments, Messaging, Admin Messaging.
+- Event listeners set up in `DOMContentLoaded`.
+- Realtime subscriptions for listings, comments, and messages.
+
+**Key Functions & Logic Blocks:**
+
+1.  **Initialization & Config:**
+    - `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPERADMIN_USER_ID`, `GA_MEASUREMENT_ID`: Constants.
+    - Supabase client creation with error handling.
+    - Global state variables initialized.
+
+2.  **Google Analytics (`trackGAEvent`, `trackPageView`):**
+    - `trackGAEvent`: Sends custom events to GA4.
+    - `trackPageView`: Sends `page_view` events for SPA navigation. Called on initial load and when views change (e.g., showing item detail, messages).
+
+3.  **UI Helpers (`showToast`, `updateAuthUI`, `showModal`, `hideModal`, `showButtonLoadingState`):**
+    - Manage toast notifications, update UI based on auth state, show/hide modals with transitions, and manage loading states of submit buttons.
+
+4.  **Authentication (`handleSignup`, `handleLogin`, `handleLogout`, `handleForgotPassword`, `handleEditProfile`, `setupAuthListeners`):**
+    - `handleSignup`: Includes `displayName` in `options.data.username` for the SQL trigger. Uses toasts.
+    - `handleLogin`: Standard email/password login. Uses toasts.
+    - `handleLogout`: Signs out user. Uses toasts.
+    - `handleForgotPassword`: Prompts for email, calls `resetPasswordForEmail`. Uses toasts.
+    - `handleEditProfile`: Fetches current profile, allows updating `username` in `profiles` table using `upsert`. Uses toasts.
+    - `setupAuthListeners`: Attaches event listeners to all auth-related buttons and modal-switching links.
+
+5.  **Modal Reset Functions (`resetPostItemModal`, `resetEditItemModal`):**
+    - Ensure forms within modals are cleared and reset to their default state when opened or closed. Handles advanced fields like price, image source, and previews.
+
+6.  **Listing CRUD & Display:**
+    - **`postItemBtnGlobal` listener:** Opens Post Item modal; prompts login if not authenticated.
+    - **Modal Closing:** Generic listeners for `close-button` clicks and overlay clicks.
+    - **`postItemForm` submit:**
+        - Handles "Free" checkbox for price.
+        - Handles image source (file upload or URL).
+        - Uploads image file to Supabase Storage (with `owner` metadata).
+        - Inserts new listing into `listings` table.
+        - Uses toasts for feedback. GA events for success/failure.
+    - **`editItemForm` submit:**
+        - Handles "Free" checkbox for price in edit modal.
+        - Handles image change (keep, new file, new URL).
+        *   If new image: uploads new file to storage, (tries to) delete old image from storage if URL was from Supabase Storage, updates `image_url`.
+        - Updates listing in `listings` table.
+        - Uses toasts for feedback. GA events for success/failure.
+    - **`fetchListings(isNewSearchOrFilter = false)`:**
+        - Core function to fetch and render listings.
+        - `isNewSearchOrFilter` flag controls whether to clear existing listings or append.
+        - Implements "Load More" using `currentLoadedCount` and `ITEMS_PER_PAGE`.
+        - Dynamically builds Supabase query based on `currentSearchTerm`, `currentMinPrice`, `currentMaxPrice`, `currentFilterFreeOnly`, and `currentSortOption`.
+        - Queries the `listings_with_author_info` VIEW to get seller's username/email.
+        - Renders each listing card, including seller's display name and formatted date.
+        - Shows/hides Edit/Delete buttons based on ownership or Superadmin status.
+        - Handles "no items found" or error states.
+        - Prevents duplicate card rendering if `isNewSearchOrFilter` is false (e.g., for load more or some realtime scenarios).
+    - **Card Click Listener (on `listingsContainer`):**
+        *   If an action button (edit/delete) is clicked, performs that action.
+        *   Otherwise, if the card area is clicked, calls `showItemDetailPage()`.
+    - **`handleDeleteListing()`:** Deletes listing from DB and associated image from storage. Uses toasts. GA events.
+
+7.  **Item Detail Page (`showItemDetailPage`, `backToListingsBtnFromDetail` listener):**
+    - `showItemDetailPage(itemId)`:
+        - Hides main listings view, shows detail view.
+        - Fetches single item data from `listings_with_author_info` view.
+        - Robustly populates pre-defined HTML elements in `#itemDetailContent` with item details (image, name, price, description, contact, seller info, date). Handles image loading errors.
+        - Shows/hides "Message Seller" button.
+        - Calls `fetchComments(itemId)`.
+        - Tracks GA page view.
+    - `backToListingsBtnFromDetail` listener: Navigates back to main listings view, tracks GA page view.
+
+8.  **Comments (`fetchComments`, `deleteComment`, `addCommentForm` submit, `loginToCommentLink` listener):**
+    - `fetchComments(listingId)`:
+        - Fetches comments for a listing from `comments_with_commenter_info` view.
+        - Displays comments with author's username/email and date.
+        - Shows delete button for comment owner or Superadmin.
+        - Shows "Sign in to post a comment" link if user not logged in and no comments.
+    - `deleteComment(commentId)`: Deletes a comment. Uses toasts. GA event.
+    - `addCommentForm` submit: Allows logged-in users to post comments. Uses toasts. GA event.
+    - Event listener on `itemDetailView` (delegated) handles clicks on dynamically added `loginToCommentLink`.
+
+9.  **Direct Messaging (`showMessagesView`, `fetchUserConversations`, `openConversation`, `fetchMessagesForConversation`, `sendMessageForm` submit, `messageSellerBtn` click, `handleStartNewGeneralConversation`, `handleSupportChatClick`, Admin Message Views):**
+    *   **Views:** Manages display of `#mainListingsView`, `#itemDetailView`, `#messagesView`, `#adminMessagesView`.
+    *   **`showMessagesView()`:** Navigates to the user's "My Messages" area, fetches their conversations.
+    *   **`fetchUserConversations()`:** Calls the `get_user_conversations` RPC to get a list of conversations for the current user, including other participant details and last message preview. Renders this list.
+    *   **`openConversation(conversationId, otherUserName, listingIdContext)`:**
+        *   Sets `currentOpenConversationId`.
+        *   Displays the chat panel for the selected conversation.
+        *   Fetches messages for this conversation.
+        *   Starts polling for new messages in this active chat.
+    *   **`fetchMessagesForConversation(conversationId, showLoading = true)`:**
+        *   Fetches messages for a given conversation from `messages_with_sender_info` view.
+        *   Renders messages, differentiating between "sent" and "received".
+        *   Handles appending new messages without full re-render during polling.
+    *   **`sendMessageForm` submit:** Sends a new message to the `currentOpenConversationId`.
+    *   **`messageSellerBtn` click:**
+        *   Calls `get_or_create_conversation` RPC with current user ID, seller's ID, and `listingId`.
+        *   Opens the conversation in the messages view.
+    *   **`handleStartNewGeneralConversation()`:**
+        *   Prompts for target user's email/username.
+        *   Finds target user's ID from `profiles` table.
+        *   Calls `get_or_create_conversation` RPC with `p_listing_id: null`.
+        *   Opens the conversation.
+    *   **`handleSupportChatClick()`:**
+        *   Calls `get_or_create_conversation` RPC with current user ID and `SUPERADMIN_USER_ID` (acting as support).
+        *   Opens conversation with "Support Team".
+    *   **Admin Message View (`showAdminMessagesView`, `fetchAllConversationsForAdmin`, `fetchMessagesForAdminChat`):**
+        *   Allows Superadmin to view a list of all conversations on the site (queries `admin_conversations_overview` view).
+        *   Allows Superadmin to select a conversation and view its messages (queries `messages_with_sender_info` view). Admin chat is read-only for messages from others.
+
+10. **Event Listeners in `DOMContentLoaded`:**
+    *   `setupAuthListeners()` is called.
+    *   Specific listeners for Post Item Modal features (free checkbox, image source, image preview) are set up.
+    *   Specific listeners for Edit Item Modal features are set up.
+    *   Listener for dynamically added links/buttons within `#itemDetailView` (like "Sign in to comment" or "Delete comment").
+    *   Listeners for search bar, filter apply button, and load more button.
+    *   Initial session check and UI update.
+    *   Initial GA `page_view` track.
+    *   Sets up Supabase realtime subscriptions for `listings`, `comments`, and `messages` tables. Realtime events generally trigger a full `fetchListings(true)` or `fetchComments()` for simplicity, but message inserts are more targeted.
+
+----------------------------------------
+End of Explanation
+----------------------------------------
