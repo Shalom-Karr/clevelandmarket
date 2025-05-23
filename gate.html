@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cleveland Marketplace - Verification</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            text-align: center;
+            background-color: var(--body-bg);
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .gate-container {
+            background-color: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow-lg);
+            max-width: 500px;
+            width: 100%;
+            margin-bottom: 30px; /* Space if modal appears below */
+        }
+        .gate-container h1 {
+            color: var(--dark-color);
+            margin-bottom: 15px;
+            font-size: 1.8em;
+        }
+        .gate-container p {
+            color: var(--muted-color);
+            margin-bottom: 30px;
+            font-size: 1.05em;
+            line-height: 1.6;
+        }
+        #proceedToVerificationBtn {
+            padding: 12px 30px;
+            font-size: 1.1em;
+        }
+        /* Styles for the 2FA modal if it's directly in gate.html */
+        /* These are copied/adapted from your main style.css for the modal */
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow-y: auto; background-color: rgba(0,0,0,0.65); align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s; padding: 20px 0; }
+        .modal.modal-visible, .modal[style*="display: flex"] { opacity: 1; visibility: visible; transition: opacity 0.3s ease-in-out, visibility 0s linear 0s; }
+        .modal-content { background-color: var(--modal-bg); padding: 30px 35px; border: 1px solid var(--border-color); width: 90%; max-width: 500px; /* Adjusted for gate */ border-radius: var(--border-radius); box-shadow: var(--box-shadow-lg); position: relative; opacity: 0; transform: translateY(-20px) scale(0.98); transition: opacity 0.25s ease-out 0.1s, transform 0.25s ease-out 0.1s; margin: auto; }
+        .modal.modal-visible .modal-content, .modal[style*="display: flex"] .modal-content { opacity: 1; transform: translateY(0) scale(1); }
+        .modal-content h2 { margin-top: 0; margin-bottom: 25px; color: var(--dark-color); text-align: center; font-size: 1.75em; font-weight: 600;}
+        .close-button { color: #aaa; position: absolute; top: 12px; right: 18px; font-size: 32px; font-weight: bold; line-height: 1; cursor: pointer; background: none; border: none; padding: 5px; z-index: 10; }
+        .close-button:hover, .close-button:focus { color: var(--dark-color); text-decoration: none; }
+        .modal-content form div { margin-bottom: 20px; }
+        .modal-content form label { display: block; margin-bottom: 8px; font-weight: 500; color: #495057; font-size: 1em; }
+        .modal-content form input[type="text"] { width: 100%; padding: 12px 14px; border: 1px solid var(--border-color); border-radius: var(--border-radius); box-sizing: border-box; font-size: 1em; }
+        .modal-content form button.button-primary[type="submit"] { width: 100%; padding: 12px 20px; font-size: 1.05em; margin-top: 10px; }
+        .form-message { margin-top: 18px; font-size: 0.95em; min-height: 1.2em; text-align: center; padding: 12px; border-radius: var(--border-radius); }
+        .form-message.success { color: #0f5132; background-color: #d1e7dd; border: 1px solid #badbcc;}
+        .form-message.error { color: #842029; background-color: #f8d7da; border: 1px solid #f5c2c7;}
+    </style>
+</head>
+<body>
+    <div class="gate-container" id="initialGateContent">
+        <h1>Cleveland Marketplace</h1>
+        <p>To ensure secure access and maintain community standards, a brief verification step is required before you can view the marketplace.</p>
+        <button id="proceedToVerificationBtn" class="button-primary">Proceed to Verification</button>
+    </div>
+
+    <!-- 2FA Code Input Modal for Site Gate -->
+    <div id="siteGateTwoFactorAuthModal" class="modal">
+        <div class="modal-content">
+            <span class="close-button" id="closeSiteGateTwoFactorAuthModalBtn">×</span>
+            <h2>Site Access Verification</h2>
+            <p id="siteGateTwoFactorAuthInstruction">A 6-digit verification code is required. Please enter the provided code to access the marketplace.</p>
+            <form id="siteGateTwoFactorAuthForm">
+                <div>
+                    <label for="siteGateTwoFactorAuthCode">Verification Code:</label>
+                    <input type="text" id="siteGateTwoFactorAuthCode" name="siteGateTwoFactorAuthCode" required maxlength="6" pattern="\d{6}" inputmode="numeric" autocomplete="one-time-code">
+                </div>
+                <button type="submit" class="button-primary" style="margin-top: 15px;">
+                    Verify & Enter Marketplace
+                </button>
+                <p id="siteGateTwoFactorAuthMessage" class="form-message"></p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let siteGateGeneratedCode = '';
+
+        function showSiteGateModal() {
+            const modal = document.getElementById('siteGateTwoFactorAuthModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                requestAnimationFrame(() => { modal.classList.add('modal-visible'); });
+            }
+        }
+
+        function hideSiteGateModal() {
+            const modal = document.getElementById('siteGateTwoFactorAuthModal');
+            if (modal) {
+                modal.classList.remove('modal-visible');
+                setTimeout(() => { if (!modal.classList.contains('modal-visible')) { modal.style.display = 'none'; } }, 300);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const proceedBtn = document.getElementById('proceedToVerificationBtn');
+            const siteGateModal = document.getElementById('siteGateTwoFactorAuthModal');
+            const siteGateForm = document.getElementById('siteGateTwoFactorAuthForm');
+            const siteGateCodeField = document.getElementById('siteGateTwoFactorAuthCode');
+            const siteGateMessage = document.getElementById('siteGateTwoFactorAuthMessage');
+            const siteGateInstruction = document.getElementById('siteGateTwoFactorAuthInstruction');
+            const closeSiteGateBtn = document.getElementById('closeSiteGateTwoFactorAuthModalBtn');
+            const initialGateContent = document.getElementById('initialGateContent');
+
+
+            if (proceedBtn) {
+                proceedBtn.addEventListener('click', () => {
+                    siteGateGeneratedCode = Math.floor(100000 + Math.random() * 900000).toString();
+                    console.log("SITE ACCESS Verification Code (gate.html): " + siteGateGeneratedCode);
+
+                    alert("A 6-digit verification code is required to access the marketplace.\n\nFor demonstration purposes, your code is: " + siteGateGeneratedCode + "\n\nPlease enter this code in the verification screen.");
+                    
+                    if (siteGateInstruction) {
+                         siteGateInstruction.textContent = "A 6-digit verification code is required. Please enter the provided code to access the marketplace.";
+                    }
+                    if (siteGateForm) siteGateForm.reset();
+                    if (siteGateMessage) {
+                        siteGateMessage.textContent = '';
+                        siteGateMessage.className = 'form-message';
+                    }
+                    
+                    if(initialGateContent) initialGateContent.style.display = 'none'; // Hide initial text
+                    showSiteGateModal();
+                    if (siteGateCodeField) siteGateCodeField.focus();
+                });
+            }
+
+            if (siteGateForm) {
+                siteGateForm.addEventListener('submit', (event) => {
+                    event.preventDefault();
+                    const enteredCode = siteGateCodeField.value;
+                    if (enteredCode === siteGateGeneratedCode) {
+                        siteGateMessage.textContent = "Verification successful! Entering marketplace...";
+                        siteGateMessage.className = 'form-message success';
+                        sessionStorage.setItem('siteAccessGranted', 'true');
+                        setTimeout(() => {
+                            window.location.href = 'index.html';
+                        }, 1000);
+                    } else {
+                        siteGateMessage.textContent = "Invalid verification code. Please try again.";
+                        siteGateMessage.className = 'form-message error';
+                        siteGateCodeField.value = '';
+                        siteGateCodeField.focus();
+                    }
+                });
+            }
+
+            if (closeSiteGateBtn) {
+                closeSiteGateBtn.addEventListener('click', () => {
+                    hideSiteGateModal();
+                    if(initialGateContent) initialGateContent.style.display = 'block'; // Show initial text again
+                    if (siteGateMessage) {
+                        siteGateMessage.textContent = '';
+                        siteGateMessage.className = 'form-message';
+                    }
+                });
+            }
+            
+            // Handle clicking outside the modal to close it
+            window.addEventListener('click', (event) => {
+                if (event.target === siteGateModal) {
+                    hideSiteGateModal();
+                    if(initialGateContent) initialGateContent.style.display = 'block';
+                     if (siteGateMessage) {
+                        siteGateMessage.textContent = '';
+                        siteGateMessage.className = 'form-message';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

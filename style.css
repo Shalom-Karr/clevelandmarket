@@ -14,6 +14,8 @@
     --warning-hover: #e0a800;
     --info-color: #17a2b8;
     --info-hover: #138496;
+    --admin-action-color: #5bc0de;
+    --admin-action-hover: #31b0d5;
     --light-color: #f8f9fa;
     --dark-color: #343a40;
     --text-color: #333;
@@ -22,164 +24,165 @@
     --body-bg: #f9f9f9;
     --card-bg: #ffffff;
     --modal-bg: #fefefe;
-    --font-family-sans-serif: Arial, sans-serif;
+    --font-family-sans-serif: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --border-radius: .3rem;
     --box-shadow: 0 .125rem .25rem rgba(0,0,0,.075);
     --box-shadow-lg: 0 1rem 3rem rgba(0,0,0,.175);
 }
 
-body { 
-    font-family: var(--font-family-sans-serif); 
-    margin: 0; 
-    padding: 0; 
-    background-color: var(--body-bg); 
-    color: var(--text-color); 
-    line-height: 1.6; 
+html {
+    scroll-behavior: smooth;
 }
 
-/* --- Header with Flexbox --- */
+body {
+    font-family: var(--font-family-sans-serif);
+    margin: 0;
+    padding: 0;
+    background-color: var(--body-bg);
+    color: var(--text-color);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+main {
+    flex-grow: 1;
+    padding-top: 15px;
+    padding-bottom: 30px;
+}
+
+/* --- Header --- */
 header {
-    background-color: var(--dark-color); 
-    color: white; 
-    padding: 1.5em 1em; /* Increased padding */
-    margin-bottom: 20px; /* Increased margin */
-    box-shadow: 0 2px 5px rgba(0,0,0,0.15); 
+    background-color: var(--dark-color);
+    color: white;
+    padding: 1.5em 1em;
+    margin-bottom: 20px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
     position: relative;
-    display: flex; 
-    flex-direction: column; 
-    align-items: center; 
+    display: flex;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    min-height: 120px; /* Slightly taller */
+    min-height: 120px;
 }
-.header-main-content { 
-    text-align: center; 
-    width: 100%; 
-    max-width:1200px; 
-    padding: 0 1em; 
-    padding-top: 50px; /* Space for auth container */
+.header-main-content {
+    text-align: center;
+    width: 100%;
+    max-width:1200px;
+    padding: 0 1em;
+    padding-top: 50px;
 }
-header h1 { 
-    margin: 0 0 8px 0; /* Increased bottom margin */
-    font-size: 2.4em; 
-    font-weight: 600; /* Bolder */
+header h1 {
+    margin: 0 0 8px 0;
+    font-size: 2.4em;
+    font-weight: 600;
 }
-header h2 { 
-    margin: 0 0 20px 0; /* Increased bottom margin */
-    font-size: 1.15em; 
-    font-weight: 300; /* Lighter */
-    color: #e0e0e0; 
+header h2 {
+    margin: 0 0 20px 0;
+    font-size: 1.15em;
+    font-weight: 300;
+    color: #e0e0e0;
 }
-#authContainer { 
-    position: absolute; 
-    top: 15px; 
-    right: 15px; 
-    display: flex; 
-    align-items: center; 
-    gap: 10px; /* Increased gap */
-    z-index: 20; 
+#authContainer {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 20;
 }
-#authContainer button.auth-button { 
-    background-color: var(--primary-color); 
-    color: white; 
-    border: none; 
-    padding: 9px 14px; /* Slightly larger padding */
-    border-radius: var(--border-radius); 
-    cursor: pointer; 
-    font-size: 0.9em; 
+#authContainer button.auth-button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 9px 14px;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.9em;
     font-weight: 500;
-    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease; 
+    transition: background-color 0.2s ease, transform 0.1s ease, box-shadow 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
 }
-#authContainer button.auth-button:hover { 
-    background-color: var(--primary-hover); 
-    transform: translateY(-1px); 
+#authContainer button.auth-button:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-#authContainer button.auth-button:focus-visible { 
-    outline: 2px solid var(--primary-color); 
-    outline-offset: 2px; 
-    box-shadow: 0 0 0 4px rgba(0,123,255,.25); 
+#authContainer button.auth-button:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+    box-shadow: 0 0 0 4px rgba(0,123,255,.25);
 }
-
-#authContainer button.button-outline { 
-    background-color: transparent; 
-    color: #fff; 
-    border: 1px solid #fff; 
+.auth-icon {
+    vertical-align: middle;
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    stroke-width: 2.5;
 }
-#authContainer button.button-outline:hover { 
-    background-color: rgba(255,255,255,0.1); 
-    border-color: #fff; 
+#authContainer button.button-profile {
+    background-color: var(--info-color);
+    border-color: var(--info-color);
 }
-
-#authContainer button.button-danger { 
-    background-color: var(--danger-color); 
+#authContainer button.button-profile:hover {
+    background-color: var(--info-hover);
+    border-color: var(--info-hover);
 }
-#authContainer button.button-danger:hover { 
-    background-color: var(--danger-hover); 
+#authContainer button.button-profile:focus-visible {
+    outline-color: var(--info-color);
+    box-shadow: 0 0 0 4px rgba(23, 162, 184, .25);
 }
-#authContainer button.button-danger:focus-visible { 
-    outline-color: var(--danger-color); 
-    box-shadow: 0 0 0 4px rgba(220,53,69,.25); 
+#authContainer button.button-special { /* Admin View Messages Button */
+    background-color: var(--secondary-color);
+    border-color: var(--secondary-color);
 }
-
-#authContainer button.button-special { 
-    background-color: var(--secondary-color); 
-    border-color: var(--secondary-color); 
-}
-#authContainer button.button-special:hover { 
-    background-color: var(--secondary-hover); 
+#authContainer button.button-special:hover {
+    background-color: var(--secondary-hover);
     border-color: var(--secondary-hover);
 }
-#authContainer button.button-special:focus-visible { 
-    outline-color: var(--secondary-color); 
-    box-shadow: 0 0 0 4px rgba(108, 117, 125, .25); 
+#authContainer button.button-admin-extra { /* User Management Button */
+    background-color: #4e5d6c;
+    border-color: #3b4754;
+}
+#authContainer button.button-admin-extra:hover {
+    background-color: #3b4754;
+    border-color: #2c3540;
 }
 
-#authContainer #userEmail { 
-    font-size: 0.9em; 
-    margin-right: 10px; 
-    color: #e0e0e0; /* Softer white */
+#postItemBtn {
+    display: inline-block;
+    background-color: var(--success-color);
+    color: white;
+    padding: 14px 32px;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 1.15em;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 15px;
+    box-shadow: 0 3px 6px rgba(0,0,0,0.15);
+    transition: background-color 0.2s ease-in-out, transform 0.15s ease, box-shadow 0.2s ease-in-out;
 }
-#postItemBtn { 
-    display: inline-block; 
-    background-color: var(--success-color); 
-    color: white; 
-    padding: 14px 32px; /* Larger padding */
-    border: none; 
-    border-radius: var(--border-radius); 
-    cursor: pointer; 
-    font-size: 1.15em; /* Slightly larger */
-    font-weight: bold; 
-    text-transform: uppercase; 
-    letter-spacing: 0.5px; 
-    margin-top: 15px; /* Increased margin */
-    box-shadow: 0 3px 6px rgba(0,0,0,0.15); 
-    transition: background-color 0.2s ease-in-out, transform 0.15s ease, box-shadow 0.2s ease-in-out; 
-}
-#postItemBtn:hover { 
-    background-color: var(--success-hover); 
-    box-shadow: 0 5px 12px rgba(0,0,0,0.25); 
-    transform: translateY(-2px); 
-}
-#postItemBtn:active { 
-    background-color: #1e7e34; 
-    transform: translateY(0px); 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.15); 
-}
-#postItemBtn:focus-visible { 
-    outline: 2px solid var(--success-color); 
-    outline-offset: 2px; 
-    box-shadow: 0 0 0 4px rgba(40,167,69,.25); 
-}
+#postItemBtn:hover { background-color: var(--success-hover); box-shadow: 0 5px 12px rgba(0,0,0,0.25); transform: translateY(-2px); }
+#postItemBtn:active { background-color: #1e7e34; transform: translateY(0px); box-shadow: 0 2px 4px rgba(0,0,0,0.15); }
+#postItemBtn:focus-visible { outline: 2px solid var(--success-color); outline-offset: 2px; box-shadow: 0 0 0 4px rgba(40,167,69,.25); }
 .admin-button.top-right { display: none !important; }
 
-main { padding-top: 15px; padding-bottom: 30px; }
+/* Listings, Item Detail, Comments ... */
 .listings-header-controls { max-width: 1200px; margin: 0 auto 30px auto; padding: 0 20px; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 20px; }
 h2#listingsSectionTitle.section-title { font-size: 2em; color: var(--dark-color); margin: 0; padding: 10px 0; flex-shrink: 0; margin-right: 25px; }
 .search-container { display: flex; flex-grow: 1; min-width: 250px; justify-content: center; }
 #searchBar { width: 100%; max-width: 550px; padding: 12px 18px; font-size: 1em; border: 1px solid var(--border-color); border-radius: 25px; box-shadow: var(--box-shadow); transition: border-color 0.2s ease, box-shadow 0.2s ease; }
 #searchBar:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,123,255,.25), var(--box-shadow); }
-.filter-sort-controls { display: none; } /* Kept as per original logic if not actively used */
-
+.filter-sort-controls { display: none; }
 #listingsContainer { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 25px; padding: 0 20px 25px 20px; max-width: 1300px; margin: 0 auto; }
 #listingsContainer > p.loading-text { grid-column: 1 / -1; text-align: center; font-size: 1.1em; color: var(--muted-color); padding: 50px 0; }
 .listing-card { background-color: var(--card-bg); border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 20px; box-shadow: var(--box-shadow); display: flex; flex-direction: column; transition: transform 0.25s ease-out, box-shadow 0.25s ease-out, border-color 0.25s ease-out; cursor: pointer; }
@@ -209,9 +212,22 @@ h2#listingsSectionTitle.section-title { font-size: 2em; color: var(--dark-color)
 #loadMoreBtn:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; box-shadow: 0 0 0 4px rgba(0,123,255,.25); }
 
 #itemDetailView { padding: 25px; background-color: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--box-shadow-lg); margin-top: 25px; max-width: 850px; margin-left: auto; margin-right: auto; }
-#backToListingsBtnFromDetail, #backToListingsFromMessagesBtn, #backToListingsFromAdminMessagesViewBtn { margin-bottom: 25px; padding: 9px 18px; font-size: 0.95em; background-color: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); border-radius: var(--border-radius); cursor: pointer; font-weight: 500;}
-#backToListingsBtnFromDetail:hover, #backToListingsFromMessagesBtn:hover, #backToListingsFromAdminMessagesViewBtn:hover { background-color: var(--primary-color); color: white; }
-#backToListingsBtnFromDetail:focus-visible, #backToListingsFromMessagesBtn:focus-visible, #backToListingsFromAdminMessagesViewBtn:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 2px; }
+#backToListingsBtnFromDetail, #backToListingsFromMessagesBtn,
+#backToListingsFromAdminMessagesViewBtn, #backToListingsFromAdminUsersBtn {
+    margin-bottom: 25px; padding: 9px 18px; font-size: 0.95em;
+    background-color: transparent; color: var(--primary-color);
+    border: 1px solid var(--primary-color); border-radius: var(--border-radius);
+    cursor: pointer; font-weight: 500;
+}
+#backToListingsBtnFromDetail:hover, #backToListingsFromMessagesBtn:hover,
+#backToListingsFromAdminMessagesViewBtn:hover, #backToListingsFromAdminUsersBtn:hover {
+    background-color: var(--primary-color); color: white;
+}
+#backToListingsBtnFromDetail:focus-visible, #backToListingsFromMessagesBtn:focus-visible,
+#backToListingsFromAdminMessagesViewBtn:focus-visible, #backToListingsFromAdminUsersBtn:focus-visible {
+    outline: 2px solid var(--primary-color); outline-offset: 2px;
+}
+
 #itemDetailContent img.detail-view-image { width: 100%; max-height: 500px; object-fit: contain; border-radius: var(--border-radius); margin-bottom: 25px; background-color: #f0f0f0; }
 .no-image-placeholder-detail { height:350px; background:#f0f0f0; display:flex; align-items:center; justify-content:center; border-radius: var(--border-radius); margin-bottom: 25px; color: var(--muted-color); font-style: italic; }
 #itemDetailContent #detailItemName { font-size: 2.2em; color: var(--dark-color); margin-bottom: 12px; font-weight: 600;}
@@ -239,109 +255,480 @@ h2#listingsSectionTitle.section-title { font-size: 2em; color: var(--dark-color)
 #addCommentForm button[type="submit"].button-primary { padding: 12px 28px; font-size: 1em; margin-top: 0;}
 
 
-/* --- Messages & Admin Messages View --- */
-#messagesView, #adminMessagesView { padding: 25px; background-color: var(--card-bg); border-radius: var(--border-radius); box-shadow: var(--box-shadow-lg); margin-top: 25px; max-width: 950px; margin-left: auto; margin-right: auto; }
-#messagesView > h2, #adminMessagesView > h2 { text-align: center; margin-bottom: 25px; color: var(--dark-color); font-size: 1.8em; font-weight: 600;}
-#messagesView #startNewConversationBtn.button-primary { display: block; width: auto; margin: 0 auto 25px auto; padding: 12px 25px; font-size: 1em; }
+/* --- Messages & Admin Views --- */
+#messagesView, #adminMessagesView, #adminUserManagementView {
+    padding: 0; /* Remove padding if panels will fill */
+    background-color: #f0f2f5; /* Light grey background for the whole messages area */
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow-lg);
+    margin-top: 25px;
+    max-width: 1100px; /* Wider for modern chat */
+    margin-left: auto;
+    margin-right: auto;
+    overflow: hidden; /* To contain rounded corners of children */
+}
+#adminUserManagementView { max-width: 1000px; padding: 25px; background-color: var(--card-bg); } /* Keep padding for user management */
 
-.messages-layout { display: flex; gap: 25px; min-height: 550px; background-color: #fdfdfd; border: 1px solid var(--border-color); border-radius: var(--border-radius); padding: 15px;}
-#conversationsListPanel, #adminConversationsListPanel { flex: 1; min-width: 280px; max-width: 320px; border-right: 1px solid var(--border-color); padding-right: 25px; overflow-y: auto; background-color: #fff; }
-#conversationsListPanel h4, #adminConversationsListPanel h4 { margin-top: 5px; margin-bottom: 18px; font-size: 1.3em; color: var(--dark-color); padding-bottom: 10px; border-bottom: 1px solid #eee; font-weight: 500;}
-#conversationsListInner .conversation-item, #adminConversationsListInner .conversation-item { padding: 12px 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; border-radius: var(--border-radius); transition: background-color 0.15s ease-in-out; margin-bottom: 5px;}
-#conversationsListInner .conversation-item:hover, #adminConversationsListInner .conversation-item:hover { background-color: #f0f7ff; }
-#conversationsListInner .conversation-item.active-conversation, #adminConversationsListInner .conversation-item.active-conversation { background-color: var(--primary-color); color: white; font-weight: bold; }
-#conversationsListInner .conversation-item.active-conversation p, 
-#adminConversationsListInner .conversation-item.active-conversation p,
-#conversationsListInner .conversation-item.active-conversation small, 
-#adminConversationsListInner .conversation-item.active-conversation small { color: white !important; }
-#conversationsListInner .conversation-item.active-conversation .convo-user, 
-#adminConversationsListInner .conversation-item.active-conversation .convo-user { color: white !important; }
+#messagesView > h2, /* #adminMessagesView > h2, */ #adminUserManagementView > h2 { /* Keep h2 for user mgmt */
+    text-align: center; margin-bottom: 25px; color: var(--dark-color);
+    font-size: 1.8em; font-weight: 600;
+    /* For messagesView, this H2 is less prominent or removed for chat-like UI */
+    display: none; /* Hide the "My Messages" H2 for now */
+}
+#messagesView #startNewConversationBtn.button-primary {
+    display: block; width: auto; margin: 15px auto 20px auto; padding: 10px 20px; font-size: 0.95em;
+}
+.admin-panel-info {
+    background-color: var(--light-color);
+    border: 1px solid var(--border-color);
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: var(--border-radius);
+    font-size: 0.95em;
+    color: var(--muted-color);
+}
+.admin-actions-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    gap: 15px;
+    flex-wrap: wrap;
+}
+.admin-search-bar {
+    flex-grow: 1;
+    padding: 10px 15px;
+    font-size: 1em;
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    margin: 0;
+}
+.admin-search-bar:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0,123,255,.25);
+}
+.admin-actions-bar button {
+    padding: 10px 18px;
+}
 
-#conversationsListInner .conversation-item p, #adminConversationsListInner .conversation-item p { margin: 0 0 6px 0; font-size: 0.95em; }
-#conversationsListInner .conversation-item .convo-user, #adminConversationsListInner .conversation-item .convo-user { font-weight: 600; color: var(--primary-color); }
-#conversationsListInner .conversation-item .convo-listing, #adminConversationsListInner .conversation-item .convo-listing { font-size: 0.85em; color: #555; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#conversationsListInner .conversation-item .convo-last-message, #adminConversationsListInner .conversation-item .convo-last-message { font-size: 0.9em; color: var(--muted-color); font-style: italic; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-#adminConversationsListInner .conversation-item small { font-size: 0.75em; color: var(--muted-color); display: block; margin-top: 4px;}
 
-#messageChatPanel, #adminMessageChatPanel { flex: 3; display: flex; flex-direction: column; background-color: #fff; padding: 15px; border-radius: var(--border-radius); box-shadow: inset 0 0 5px rgba(0,0,0,0.05);}
-#messageChatPanel h3#chatWithInfo, #adminMessageChatPanel h3#adminChatWithInfo { margin-top: 0; margin-bottom: 18px; padding-bottom: 12px; border-bottom: 1px solid var(--border-color); font-size: 1.3em; color: var(--dark-color); font-weight: 500;}
-#messagesContainer, #adminMessagesContainer { flex-grow: 1; overflow-y: auto; padding: 15px; border: 1px solid #f0f0f0; border-radius: var(--border-radius); background-color: #fdfdfd; margin-bottom: 18px; display: flex; flex-direction: column-reverse; /* To keep scroll at bottom */ }
-#messagesContainer .message-bubble, #adminMessagesContainer .message-bubble { max-width: 75%; padding: 10px 15px; margin-bottom: 12px; border-radius: 18px; line-height: 1.5; font-size: 1em; word-wrap: break-word; position: relative; box-shadow: 0 1px 2px rgba(0,0,0,0.08);}
-#messagesContainer .message-bubble.sent, #adminMessagesContainer .message-bubble.sent { background-color: var(--primary-color); color: white; border-bottom-right-radius: 5px; margin-left: auto; }
-#messagesContainer .message-bubble.received, #adminMessagesContainer .message-bubble.received { background-color: #e9ecef; color: var(--text-color); border-bottom-left-radius: 5px; margin-right: auto; }
-#messagesContainer .message-bubble .msg-sender, #adminMessagesContainer .message-bubble .msg-sender { font-size: 0.8em; color: var(--muted-color); margin-bottom: 4px; display: block; font-weight: 500;}
-#messagesContainer .message-bubble.sent .msg-sender, #adminMessagesContainer .message-bubble.sent .msg-sender { color: #ddeeff; text-align: right;}
-#messagesContainer .message-bubble.received .msg-sender, #adminMessagesContainer .message-bubble.received .msg-sender { color: #555; text-align: left;}
-#messagesContainer .message-bubble .msg-time, #adminMessagesContainer .message-bubble .msg-time { font-size: 0.75em; color: #aaa; display: block; text-align: right; margin-top: 5px; }
-#messagesContainer .message-bubble.sent .msg-time, #adminMessagesContainer .message-bubble.sent .msg-time { color: #cce5ff; }
+.messages-layout {
+    display: flex;
+    gap: 0; /* Panels touch */
+    min-height: calc(100vh - 180px); /* Adjust based on header/footer */
+    background-color: var(--card-bg);
+    border: none; /* Removed border around layout */
+    border-radius: var(--border-radius); /* If messagesView has no padding */
+}
+#conversationsListPanel, #adminConversationsListPanel {
+    flex: 0 0 320px; /* Fixed width for convo list */
+    min-width: 280px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #e0e0e0;
+    padding-right: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+}
+#conversationsListPanel h4, #adminConversationsListPanel h4 {
+    margin:0;
+    padding: 18px 15px;
+    border-bottom: 1px solid #e0e0e0;
+    font-weight: 500;
+    color: #333;
+    font-size: 1.1em; /* Slightly smaller */
+    flex-shrink: 0; /* Prevent shrinking */
+}
+#conversationsListInner, #adminConversationsListInner {
+    overflow-y: auto;
+    flex-grow: 1;
+}
 
-#sendMessageForm textarea { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: var(--border-radius); min-height: 70px; margin-bottom: 12px; box-sizing: border-box; font-size: 1em; resize: vertical;}
-#sendMessageForm textarea:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 2px rgba(0,123,255,.25); }
-#sendMessageForm button[type="submit"].button-primary { padding: 12px 25px; font-size: 1em; width: auto; margin-top: 0;}
+#conversationsListInner .conversation-item,
+#adminConversationsListInner .conversation-item {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e9ecef;
+    cursor: pointer;
+    transition: background-color 0.1s ease-in-out;
+    margin-bottom: 0;
+    border-radius: 0;
+}
+#conversationsListInner .conversation-item:hover,
+#adminConversationsListInner .conversation-item:hover {
+    background-color: #e9f0f7;
+}
+#conversationsListInner .conversation-item.active-conversation,
+#adminConversationsListInner .conversation-item.active-conversation {
+    background-color: var(--primary-color);
+}
+#conversationsListInner .conversation-item.active-conversation .convo-user,
+#adminConversationsListInner .conversation-item.active-conversation .convo-user,
+#conversationsListInner .conversation-item.active-conversation .convo-topic, /* Updated */
+#adminConversationsListInner .conversation-item.active-conversation .convo-topic, /* Updated */
+#conversationsListInner .conversation-item.active-conversation .convo-last-message,
+#adminConversationsListInner .conversation-item.active-conversation .convo-last-message,
+#conversationsListInner .conversation-item.active-conversation small,
+#adminConversationsListInner .conversation-item.active-conversation small {
+    color: white !important;
+}
+
+#conversationsListInner .conversation-item p,
+#adminConversationsListInner .conversation-item p {
+    margin: 0;
+    font-size: 0.95em;
+}
+.conversation-item .convo-user {
+    font-weight: 600;
+    color: #202124; /* Darker user name */
+    margin-bottom: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.conversation-item .convo-topic { /* New/Updated style for topic */
+    font-size: 0.85em;
+    color: #5f6368; /* Muted grey for topic */
+    margin-top: 1px;
+    margin-bottom: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.conversation-item .convo-last-message {
+    font-size: 0.9em;
+    color: var(--muted-color);
+    font-style: italic;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+#adminConversationsListInner .conversation-item small {
+    font-size: 0.75em; color: var(--muted-color); display: block; margin-top: 4px;
+}
+
+#messageChatPanel, #adminMessageChatPanel {
+    flex-grow: 1; /* Takes remaining space */
+    display: flex;
+    flex-direction: column;
+    background-color: #ffffff;
+    padding: 0; /* No padding on panel, padding on children */
+}
+#messageChatPanel h3#chatWithInfo,
+#adminMessageChatPanel h3#adminChatWithInfo {
+    margin:0;
+    padding: 15px 20px;
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 1.1em; /* More standard size */
+    color: #202124; /* Darker header text */
+    font-weight: 500;
+    line-height: 1.3;
+    flex-shrink: 0;
+}
+.chat-topic-header { /* For topic under username in chat header */
+    font-size: 0.8em;
+    color: #5f6368;
+    font-weight: normal;
+    display: block; /* Make it appear on a new line */
+    margin-top: 2px;
+}
+
+#messagesContainer, #adminMessagesContainer {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #e5ddd5; /* WhatsApp-like background */
+    border: none;
+    margin-bottom: 0;
+    border-radius: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.message-wrapper { /* New wrapper for bubble, reply button, reactions */
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 2px; /* Small gap between full message units */
+}
+.message-wrapper.sent { align-items: flex-end; }
+.message-wrapper.received { align-items: flex-start; }
+
+.message-bubble {
+    max-width: 70%;
+    padding: 8px 14px;
+    border-radius: 18px;
+    line-height: 1.4;
+    font-size: 0.95em;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.08);
+    word-wrap: break-word;
+    position: relative; /* For reply button positioning */
+    margin-top: 6px; /* Space for sender name or if it's first message */
+}
+.message-bubble.sent {
+    background-color: #dcf8c6; /* Light green for sent */
+    color: #303030;
+    border-bottom-right-radius: 6px;
+}
+.message-bubble.received {
+    background-color: #ffffff;
+    color: #303030;
+    border-bottom-left-radius: 6px;
+}
+.message-bubble p { margin: 0; padding: 0; } /* Remove default p margins */
+
+.message-bubble .reply-snippet-bubble { /* Styling for replied-to message snippet */
+    background-color: rgba(0,0,0,0.05);
+    padding: 6px 10px;
+    margin: -8px -14px 8px -14px; /* Adjust to fit bubble padding */
+    border-top-left-radius: 18px; /* Match parent bubble */
+    border-top-right-radius: 18px; /* Match parent bubble */
+    font-size: 0.85em;
+    color: #555;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.message-bubble .reply-snippet-bubble strong {
+    font-weight: 600;
+}
+.message-bubble.sent .reply-snippet-bubble {
+    background-color: rgba(0,0,0,0.04); /* Slightly different for sent bubble */
+}
+
+
+.message-bubble .msg-sender {
+    font-size: 0.75em;
+    color: var(--primary-color);
+    margin-bottom: 3px;
+    display: block;
+    font-weight: 600;
+}
+.message-bubble.sent .msg-sender { display: none; }
+
+.message-bubble .msg-time {
+    font-size: 0.7em;
+    color: #999;
+    display: inline-block; /* To be on the same line if space allows, or wrap */
+    margin-left: 8px; /* Space from content */
+    float: right; /* Try to float time to the right end of the last line */
+    line-height: 1.5; /* Align with text line */
+    position: relative; /* Experiment with positioning */
+    bottom: -3px; /* Align with bottom of text */
+}
+.message-bubble.sent .msg-time { color: #6aa84f; } /* Darker green for sent time */
+
+/* Reply and React Buttons (placeholder, to be shown on hover) */
+.message-actions {
+    position: absolute;
+    top: -10px; /* Adjust as needed */
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    display: flex;
+    gap: 5px;
+    background-color: rgba(255,255,255,0.9);
+    padding: 2px 5px;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.message-wrapper:hover .message-actions { opacity: 1; }
+.message-wrapper.sent .message-actions { right: 10px; }
+.message-wrapper.received .message-actions { left: 10px; }
+
+.message-action-btn {
+    background: none; border: none; cursor: pointer; font-size: 0.85em; padding: 3px; color: #5f6368;
+}
+.message-action-btn:hover { color: #000; }
+
+/* Message Reactions Display */
+.message-reactions-list {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px; /* Space below bubble */
+    padding-left: 10px; /* Align with bubble content start */
+}
+.message-wrapper.sent .message-reactions-list {
+    justify-content: flex-end; /* Align to right for sent messages */
+    padding-left: 0;
+    padding-right: 10px;
+}
+.reaction-item {
+    background-color: #e8f0fe; /* Light blue background for reaction */
+    color: var(--primary-color);
+    font-size: 0.75em;
+    padding: 2px 6px;
+    border-radius: 10px;
+    cursor: pointer;
+    border: 1px solid #d2e3fc;
+}
+.reaction-item.user-reacted { /* If current user reacted with this emoji */
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-hover);
+}
+.reaction-item .reaction-emoji { margin-right: 3px; }
+.reaction-item .reaction-count { font-weight: 500; }
+
+
+/* Message Input Area - Refined Buttons */
+#sendMessageForm {
+    padding: 10px 12px;
+    background-color: #f0f2f5;
+    border-top: 1px solid #dde1e6;
+    /* gap: 10px; Remove gap here, use .message-input-row */
+    display: flex; /* Make the form itself a flex container for replyPreview + input-row */
+    flex-direction: column; /* Stack reply preview on top of input row */
+}
+.message-input-row { /* New wrapper for attach, textarea, send */
+    display: flex;
+    align-items: flex-end; /* Textarea and buttons align at bottom */
+    width: 100%;
+    gap: 8px;
+}
+
+#sendMessageForm textarea {
+    flex-grow: 1;
+    border: 1px solid #ccd0d5;
+    border-radius: 18px;
+    padding: 8px 12px; /* Adjusted padding */
+    min-height: 20px; /* For single line */
+    line-height: 1.4;
+    box-shadow: none;
+    resize: none;
+    font-size: 0.95em;
+    transition: border-color 0.2s ease;
+    overflow-y: auto;
+    max-height: 100px; /* Approx 4-5 lines */
+    margin:0; /* remove any browser default margin */
+}
+#sendMessageForm textarea:focus {
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+label[for="messageAttachment"].file-attach-label { /* Removed .button-outline */
+    background-color: transparent;
+    border: none;
+    color: #5f6368;
+    width: 38px; /* Slightly smaller */
+    height: 38px;
+    border-radius: 50%;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    flex-shrink: 0; /* Prevent shrinking */
+}
+label[for="messageAttachment"].file-attach-label:hover {
+    background-color: #e8eaed;
+    color: #3c4043;
+}
+label[for="messageAttachment"].file-attach-label svg {
+    width: 20px;
+    height: 20px;
+}
+#fileNameDisplay {
+    font-size: 0.8em;
+    color: var(--muted-color);
+    margin-left: 0; /* Was next to attach, now below form */
+    margin-top: 5px; /* Space from input row */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: calc(100% - 20px); /* Take full width minus some padding */
+    display: block; /* Make it take its own line */
+    text-align: left; /* Or center */
+}
+
+
+#sendMessageForm button[type="submit"].send-message-btn { /* Renamed class for specificity */
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    opacity: 0.6; /* More transparent when disabled */
+    flex-shrink: 0; /* Prevent shrinking */
+}
+#sendMessageForm button[type="submit"].send-message-btn.has-text-or-file { /* New class */
+    opacity: 1;
+}
+#sendMessageForm button[type="submit"].send-message-btn:hover:not(:disabled) {
+    background-color: var(--primary-hover);
+}
+#sendMessageForm button[type="submit"].send-message-btn:disabled {
+    background-color: #bdc1c6; /* Greyer when disabled */
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+#sendMessageForm button[type="submit"].send-message-btn svg {
+    width: 18px; /* Adjusted icon size */
+    height: 18px;
+    fill: white;
+}
+
+/* Reply Preview Area */
+#replyPreview {
+    background-color: rgba(0,0,0,0.03); /* Subtler */
+    padding: 6px 10px;
+    margin-bottom: 6px; /* Space before input row */
+    border-left: 3px solid var(--secondary-color); /* Muted color for border */
+    font-size: 0.85em;
+    border-radius: 4px;
+    position: relative;
+    display: flex; /* To align content and cancel button */
+    justify-content: space-between;
+    align-items: center;
+}
+#replyPreviewContent {
+    color: #454f5b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    /* max-height: 40px; Removed, handled by container */
+    flex-grow: 1; /* Take available space */
+    padding-right: 10px; /* Space for cancel button */
+}
+#replyPreviewContent strong {
+    font-weight: 600;
+    color: #333;
+}
+#cancelReplyBtn {
+    background: none;
+    border: none;
+    font-size: 1.4em; /* Larger cancel X */
+    cursor: pointer;
+    color: #777;
+    padding: 0 3px;
+    line-height: 1;
+    flex-shrink: 0; /* Don't shrink cancel button */
+}
+#cancelReplyBtn:hover {
+    color: #333;
+}
 
 /* Admin message delete button */
-.admin-delete-message-btn {
-    position: absolute;
-    top: 2px; /* Adjust for better visual */
-    right: 2px; /* Adjust for better visual */
-    background-color: rgba(220, 53, 69, 0.1); /* Very subtle */
-    color: var(--danger-color);
-    border: none;
-    border-radius: 50%;
-    width: 22px;
-    height: 22px;
-    font-size: 14px;
-    line-height: 22px; 
-    text-align: center;
-    font-weight: bold;
-    cursor: pointer;
-    opacity: 0; /* Hidden initially */
-    transition: opacity 0.2s, background-color 0.2s;
-    z-index: 5; 
-}
-#adminMessagesContainer .message-bubble:hover .admin-delete-message-btn {
-    opacity: 0.7; 
-}
-.admin-delete-message-btn:hover {
-    background-color: rgba(220, 53, 69, 0.2); 
-    opacity: 1;
-}
-.admin-delete-message-btn:focus-visible {
-    outline: 1px solid var(--danger-hover);
-    opacity: 1;
-    background-color: rgba(220, 53, 69, 0.2);
-}
+.admin-delete-message-btn { position: absolute; top: 2px; right: 2px; background-color: rgba(220, 53, 69, 0.1); color: var(--danger-color); border: none; border-radius: 50%; width: 22px; height: 22px; font-size: 14px; line-height: 22px; text-align: center; font-weight: bold; cursor: pointer; opacity: 0; transition: opacity 0.2s, background-color 0.2s; z-index: 5; }
+#adminMessagesContainer .message-bubble:hover .admin-delete-message-btn { opacity: 0.7; }
+.admin-delete-message-btn:hover { background-color: rgba(220, 53, 69, 0.2); opacity: 1; }
+.admin-delete-message-btn:focus-visible { outline: 1px solid var(--danger-hover); opacity: 1; background-color: rgba(220, 53, 69, 0.2); }
 
 
 /* Chat with Support FAB */
-#supportChatBtn {
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    background-color: var(--primary-color);
-    color: white;
-    width: 55px;
-    height: 55px;
-    border-radius: 50%;
-    border: none;
-    font-size: 1.6em;
-    font-weight: bold;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.25);
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 999;
-    transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
-}
-#supportChatBtn:hover {
-    transform: scale(1.08);
-    box-shadow: 0 7px 18px rgba(0,0,0,0.3);
-}
-#supportChatBtn:focus-visible {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 3px;
-}
+#supportChatBtn { position: fixed; bottom: 30px; right: 30px; background-color: var(--primary-color); color: white; width: 55px; height: 55px; border-radius: 50%; border: none; font-size: 1.6em; font-weight: bold; box-shadow: 0 5px 15px rgba(0,0,0,0.25); cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 999; transition: transform 0.2s ease-out, box-shadow 0.2s ease-out; }
+#supportChatBtn:hover { transform: scale(1.08); box-shadow: 0 7px 18px rgba(0,0,0,0.3); }
+#supportChatBtn:focus-visible { outline: 2px solid var(--primary-color); outline-offset: 3px; }
 
 
 .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow-y: auto; background-color: rgba(0,0,0,0.65); align-items: center; justify-content: center; opacity: 0; visibility: hidden; transition: opacity 0.3s ease-in-out, visibility 0s linear 0.3s; padding: 20px 0; }
@@ -355,14 +742,15 @@ h2#listingsSectionTitle.section-title { font-size: 2em; color: var(--dark-color)
 .modal-content form div:not(.price-section):not(.image-source-options):not(.free-option-container):not(.current-image-preview) { margin-bottom: 20px; }
 .modal-content form label:not(.checkbox-label) { display: block; margin-bottom: 8px; font-weight: 500; color: #495057; font-size: 1em; }
 .modal-content form input[type="text"], .modal-content form input[type="email"], .modal-content form input[type="password"], .modal-content form input[type="number"], .modal-content form input[type="url"], .modal-content form input[type="file"], .modal-content form textarea { width: 100%; padding: 12px 14px; margin-bottom: 5px; border: 1px solid var(--border-color); border-radius: var(--border-radius); box-sizing: border-box; font-size: 1em; transition: border-color 0.2s ease, box-shadow 0.2s ease; }
+.modal-content form input[readonly] { background-color: #e9ecef; opacity: 0.8;}
 .modal-content form input:focus-visible, .modal-content form textarea:focus-visible, .modal-content form input[type="number"]:focus-visible, .modal-content form input[type="url"]:focus-visible { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,123,255,.25); }
 .modal-content form textarea { min-height: 110px; resize: vertical; }
 .modal-content form input[type="file"] { padding: 10px 8px; }
 
 /* --- Button Primary & Spinner Logic (Modal specific) --- */
-.button-primary, 
-.modal-content form button.button-primary[type="submit"], 
-#postItemForm button[type="submit"], 
+.button-primary,
+.modal-content form button.button-primary[type="submit"],
+#postItemForm button[type="submit"],
 #editItemForm button[type="submit"]
 {
     background-color: var(--primary-color); color: white; padding: 10px 20px; border: none;
@@ -373,30 +761,30 @@ h2#listingsSectionTitle.section-title { font-size: 2em; color: var(--dark-color)
 }
 
 .button-primary:hover:not(:disabled),
-.modal-content form button.button-primary[type="submit"]:hover:not(:disabled), 
-#postItemForm button[type="submit"]:hover:not(:disabled), 
+.modal-content form button.button-primary[type="submit"]:hover:not(:disabled),
+#postItemForm button[type="submit"]:hover:not(:disabled),
 #editItemForm button[type="submit"]:hover:not(:disabled)
 { background-color: var(--primary-hover); box-shadow: 0 4px 8px rgba(0,0,0,0.2); transform: translateY(-1px); }
 
 .button-primary:focus-visible,
-.modal-content form button.button-primary[type="submit"]:focus-visible, 
-#postItemForm button[type="submit"]:focus-visible, 
+.modal-content form button.button-primary[type="submit"]:focus-visible,
+#postItemForm button[type="submit"]:focus-visible,
 #editItemForm button[type="submit"]:focus-visible
 { outline: 2px solid var(--primary-color); outline-offset: 2px; box-shadow: 0 0 0 4px rgba(0,123,255,.25); }
 
 .button-primary:disabled,
-.modal-content form button.button-primary[type="submit"]:disabled, 
-#postItemForm button[type="submit"]:disabled, 
+.modal-content form button.button-primary[type="submit"]:disabled,
+#postItemForm button[type="submit"]:disabled,
 #editItemForm button[type="submit"]:disabled
 { background-color: #aecbed; color: #777; cursor: not-allowed; box-shadow: none; }
 
 /* Spinner styles for buttons that have the spinner HTML structure */
-.modal-content form button.button-primary[type="submit"], /* These have spinner HTML structure */
+.modal-content form button.button-primary[type="submit"],
 #postItemForm button[type="submit"],
 #editItemForm button[type="submit"],
-#editProfileModal form button.button-primary[type="submit"] 
-{ 
-    display: flex; align-items: center; justify-content: center; width: 100%; 
+#editProfileModal form button.button-primary.profile-action-button
+{
+    display: flex; align-items: center; justify-content: center; width: 100%;
     padding: 12px 20px; font-size: 1.05em; margin-top: 20px;
     position: relative; overflow: hidden;
 }
@@ -408,37 +796,39 @@ h2#listingsSectionTitle.section-title { font-size: 2em; color: var(--dark-color)
 @keyframes spin { to { transform: translate(-50%, -50%) rotate(360deg); } }
 .modal-content form button[type="submit"]:disabled.loading .button-spinner { border-top-color: #777; border-color: rgba(120,120,120,0.2); }
 
-/* Button Secondary for Profile Modal Action */
-.button-secondary {
-    background-color: var(--secondary-color);
-    color: white;
-    border: 1px solid var(--secondary-color);
-    padding: 10px 20px;
-    border-radius: var(--border-radius);
-    cursor: pointer;
-    font-size: 1em;
-    font-weight: 500;
-    text-transform: uppercase;
-    transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease;
-    width: 100%;
-    text-align: center;
-    margin-top: 10px;
-}
-.button-secondary:hover {
-    background-color: var(--secondary-hover);
-    border-color: var(--secondary-hover);
-    transform: translateY(-1px);
-}
-.button-secondary:focus-visible {
-    outline: 2px solid var(--secondary-color);
-    outline-offset: 2px;
-    box-shadow: 0 0 0 4px rgba(108, 117, 125, .25);
-}
-hr.profile-modal-divider {
-    margin: 25px 0;
-    border: 0;
-    border-top: 1px solid var(--border-color);
-}
+/* Profile Modal Specific Styles */
+.profile-modal-content .profile-header { text-align: center; margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px solid var(--border-color); }
+.profile-modal-content #profileModalTitle { margin-bottom: 8px; font-size: 1.9em; }
+.profile-modal-content .profile-user-identifier { font-size: 1.05em; color: var(--muted-color); margin-bottom: 0; word-break: break-all; }
+.profile-modal-content .profile-section { margin-bottom: 25px; padding-bottom: 25px; border-bottom: 1px solid #eee; }
+.profile-modal-content .profile-section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.profile-modal-content .profile-section h3 { font-size: 1.3em; color: var(--dark-color); margin-top: 0; margin-bottom: 18px; font-weight: 500; }
+.profile-modal-content .profile-action-button { width: 100%; margin-top: 12px; padding: 12px 20px; font-size: 1em; text-transform: none; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.profile-modal-content .profile-action-button svg { flex-shrink: 0; width: 1em; height: 1em; }
+#editProfileModal form#editProfileForm { padding-bottom: 0; border-bottom: none; margin-bottom: 0; }
+#editProfileModal form#editProfileForm button.button-primary.profile-action-button { margin-top: 18px; }
+#editProfileModal form#editProfileForm div { margin-bottom: 15px; }
+#editProfileModal form#editProfileForm div:last-of-type { margin-bottom: 0; }
+
+
+/* Button Secondary & Danger for Profile Modal Action */
+.button-outline { background-color: transparent; color: var(--primary-color); border: 1px solid var(--primary-color); border-radius: var(--border-radius); transition: background-color 0.2s, color 0.2s; padding: 8px 15px; }
+.button-outline:hover { background-color: var(--primary-color); color: white; }
+.button-outline.button-small { padding: 6px 12px; font-size: 0.85em; }
+
+
+.button-secondary, .button-danger.profile-action-button { color: white; border: 1px solid transparent; padding: 10px 20px; border-radius: var(--border-radius); cursor: pointer; font-size: 1em; font-weight: 500; transition: background-color 0.2s ease, border-color 0.2s ease, transform 0.1s ease; width: 100%; text-align: center; margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.button-secondary svg, .button-danger.profile-action-button svg { width: 1em; height: 1em; }
+.button-secondary { background-color: var(--secondary-color); border-color: var(--secondary-color); }
+.button-secondary:hover { background-color: var(--secondary-hover); border-color: var(--secondary-hover); transform: translateY(-1px); }
+.button-secondary:focus-visible { outline: 2px solid var(--secondary-color); outline-offset: 2px; box-shadow: 0 0 0 4px rgba(108, 117, 125, .25); }
+.button-danger.profile-action-button { background-color: var(--danger-color); border-color: var(--danger-color); }
+.button-danger.profile-action-button:hover { background-color: var(--danger-hover); border-color: var(--danger-hover); transform: translateY(-1px); }
+.button-danger.profile-action-button:focus-visible { outline: 2px solid var(--danger-color); box-shadow: 0 0 0 4px rgba(220, 53, 69, .25); }
+.button-info { background-color: var(--info-color); color: white; border-color: var(--info-color); }
+.button-info:hover { background-color: var(--info-hover); border-color: var(--info-hover); }
+.button-warning { background-color: var(--warning-color); color: var(--dark-color); border-color: var(--warning-color); }
+.button-warning:hover { background-color: var(--warning-hover); border-color: var(--warning-hover); }
 
 
 .price-section { margin-bottom: 18px; }
@@ -477,6 +867,169 @@ hr.profile-modal-divider {
 .toast-notification.error { background-color: var(--danger-color); }
 .toast-notification.info { background-color: var(--info-color); }
 
-@media (max-width: 768px) { header { padding: 1em; min-height: auto; } .header-main-content { padding-top: 55px; } header h1 { font-size: 2em; } header h2 { font-size: 1.1em; margin-bottom: 15px;} #postItemBtn { font-size: 1.1em; padding: 12px 25px; } h2#listingsSectionTitle.section-title { font-size: 1.8em; } #listingsContainer { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 0 15px 20px 15px; } .listing-card { padding: 15px; } .listing-card img { height: 180px; } .listing-card h3 { font-size: 1.25em; } .listing-card p { font-size: 0.9em; } #itemDetailView { padding: 20px; } #itemDetailContent #detailItemName { font-size: 1.8em;} #itemDetailContent #detailItemPrice.price-display { font-size: 1.4em; } .messages-layout { flex-direction: column; padding: 10px;} #conversationsListPanel, #adminConversationsListPanel { max-width: none; border-right: none; border-bottom: 1px solid var(--border-color); padding-right: 0; margin-bottom: 20px; max-height: 250px;} #messageChatPanel, #adminMessageChatPanel { padding: 10px;} }
+/* Admin User Management View Specifics */
+#adminUserManagementView { max-width: 1000px; }
+#adminUserManagementView .admin-search-bar { width: auto; /* Let flexbox handle it */ flex-grow: 1; margin: 0; }
+#adminUserListContainer { margin-top: 20px; }
+.user-list-item { background-color: var(--light-color); border: 1px solid var(--border-color); padding: 15px; margin-bottom: 10px; border-radius: var(--border-radius); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+.user-list-item .user-info p { margin: 3px 0; font-size: 0.95em; }
+.user-list-item .user-info strong { color: var(--dark-color); }
+.user-list-item .user-info .user-email { color: var(--primary-color); font-weight: 500; }
+.user-list-item .user-info .user-id { font-size: 0.8em; color: var(--muted-color); }
+.user-list-item .user-actions { display: flex; gap: 8px; flex-shrink: 0; margin-left: 15px;}
+.user-list-item .user-actions button { padding: 6px 10px; font-size: 0.85em; white-space: nowrap;}
+
+/* Block Management Modal */
+#adminManageUserBlocksModal .modal-content { max-width: 700px; }
+#adminManageUserBlocksModal .profile-section { margin-bottom: 25px; padding-bottom: 20px; border-bottom: 1px dashed #eee; }
+#adminManageUserBlocksModal .profile-section:last-of-type { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+#adminManageUserBlocksModal h3 { font-size: 1.2em; margin-bottom: 15px; color: var(--dark-color); font-weight: 500;}
+#adminManageUserBlocksModal .user-name-placeholder { font-weight: bold; }
+.block-list-container { max-height: 180px; overflow-y: auto; border: 1px solid var(--border-color); padding: 10px; border-radius: var(--border-radius); background-color: var(--light-color); margin-top: 10px;}
+.block-list-container .block-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 5px; border-bottom: 1px solid #eee; }
+.block-list-container .block-item:last-child { border-bottom: none; }
+.block-list-container .block-item span { font-size: 0.95em; }
+.block-list-container .block-item button { font-size: 0.8em; padding: 4px 8px; margin-left:10px; }
+
+/* Select User to Message Modal */
+#selectUserToMessageModal .modal-content { max-width: 550px; }
+.modal-search-bar { width: 100%; padding: 10px 15px; font-size: 1em; border: 1px solid var(--border-color); border-radius: var(--border-radius); box-shadow: var(--box-shadow); margin-bottom: 15px; box-sizing: border-box; }
+.modal-search-bar:focus { outline: none; border-color: var(--primary-color); box-shadow: 0 0 0 3px rgba(0,123,255,.25); }
+.user-select-list-container { max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: var(--border-radius); background-color: var(--light-color); }
+.user-select-list-container .loading-text { text-align: center; padding: 20px; color: var(--muted-color); }
+.user-select-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #eee; transition: background-color 0.15s ease; }
+.user-select-item:hover { background-color: #e9f5ff; }
+.user-select-item:last-child { border-bottom: none; }
+.user-select-item-info .name { font-weight: 500; color: var(--dark-color); }
+.user-select-item-info .email { font-size: 0.85em; color: var(--muted-color); }
+
+
+/* Footer Styles */
+footer { background-color: var(--dark-color); color: #adb5bd; padding: 25px 20px; text-align: center; font-size: 0.9em; margin-top: auto; /* Pushes footer to bottom in flex column */ border-top: 3px solid var(--primary-color); }
+.footer-content { max-width: 1200px; margin: 0 auto; }
+.footer-content p { margin: 5px 0; }
+.footer-content a { color: #e9ecef; text-decoration: none; transition: color 0.2s ease; }
+.footer-content a:hover, .footer-content a:focus-visible { color: #fff; text-decoration: underline; }
+
+
+@media (max-width: 768px) { header { padding: 1em; min-height: auto; } .header-main-content { padding-top: 55px; } header h1 { font-size: 2em; } header h2 { font-size: 1.1em; margin-bottom: 15px;} #postItemBtn { font-size: 1.1em; padding: 12px 25px; } h2#listingsSectionTitle.section-title { font-size: 1.8em; } #listingsContainer { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 20px; padding: 0 15px 20px 15px; } .listing-card { padding: 15px; } .listing-card img { height: 180px; } .listing-card h3 { font-size: 1.25em; } .listing-card p { font-size: 0.9em; } #itemDetailView { padding: 20px; } #itemDetailContent #detailItemName { font-size: 1.8em;} #itemDetailContent #detailItemPrice.price-display { font-size: 1.4em; } .messages-layout { flex-direction: column; padding: 10px;} #conversationsListPanel, #adminConversationsListPanel { max-width: none; border-right: none; border-bottom: 1px solid var(--border-color); padding-right: 0; margin-bottom: 20px; max-height: 250px; flex-basis: 250px; /* Ensure it has some base height */ flex-shrink: 0; } #messageChatPanel, #adminMessageChatPanel { padding: 0;} .admin-actions-bar { flex-direction: column; align-items: stretch;} .admin-actions-bar .admin-search-bar {max-width: none;} footer { padding: 20px 15px; font-size: 0.85em;} }
 @media (max-width: 675px) { .header-main-content { padding-top: 60px; } header h1 { font-size: 1.8em; } header h2 { font-size: 1em; } h2#listingsSectionTitle.section-title { font-size: 1.7em; } }
-@media (max-width: 480px) { header {min-height: 90px;} .header-main-content { padding-top: 65px; width: 100%; } header h1 { font-size: 1.6em; margin-bottom: 5px; } header h2 { font-size: 0.9em; margin-bottom: 12px; } #postItemBtn { padding: 10px 18px; font-size: 1em; margin-top: 10px; } #authContainer { top: 10px; right: 10px; gap: 6px; } #authContainer button.auth-button { padding: 6px 10px; font-size: 0.8em; } h2#listingsSectionTitle.section-title { font-size: 1.5em; margin-bottom: 8px; text-align: center;} .search-container { width: 100%; } #searchBar { font-size: 0.95em; padding: 10px 15px; } #listingsContainer { grid-template-columns: 1fr; gap: 18px; padding: 0 10px 15px 10px; } .listing-card { padding: 12px; } .listing-card img { height: 160px; margin-bottom: 12px; } .listing-card h3 { font-size: 1.15em; margin-bottom: 8px; } .listing-card p { font-size: 0.85em; margin-bottom: 6px; line-height: 1.4; } .listing-card p.price-display { font-size: 1.05em; margin-bottom: 10px; } .listing-card small { font-size: 0.8em; margin-top: 10px; } .listing-card .action-buttons { margin-top: 12px; gap: 8px; } .listing-card .action-buttons button { padding: 6px 9px; font-size: 0.8em; } .modal-content { padding: 20px 25px; max-width: calc(100% - 30px); } .modal-content h2 { font-size: 1.5em; } .modal-content form label:not(.checkbox-label) { font-size: 0.95em; } .modal-content form input, .modal-content form textarea { padding: 10px; font-size: 1em; } #itemDetailView { padding: 15px; } #itemDetailContent #detailItemName { font-size: 1.6em;} #itemDetailContent #detailItemPrice.price-display { font-size: 1.2em; } #itemDetailContent #detailItemImage { max-height: 280px; } #messagesView h2, #adminMessagesView h2 { font-size: 1.6em; } #messageChatPanel, #adminMessageChatPanel { min-height: 350px; } #supportChatBtn { width: 50px; height: 50px; font-size: 1.4em; bottom: 20px; right: 20px; } #messagesView #startNewConversationBtn.button-primary { width: 100%; font-size: 0.95em; padding: 12px 20px;} }
+@media (max-width: 480px) { header {min-height: 90px;} .header-main-content { padding-top: 65px; width: 100%; } header h1 { font-size: 1.6em; margin-bottom: 5px; } header h2 { font-size: 0.9em; margin-bottom: 12px; } #postItemBtn { padding: 10px 18px; font-size: 1em; margin-top: 10px; } #authContainer { top: 10px; right: 10px; gap: 6px; } #authContainer button.auth-button { padding: 7px 10px; font-size: 0.8em; } #authContainer button.auth-button span { display: none; } #authContainer button.auth-button svg { margin-right: 0;} h2#listingsSectionTitle.section-title { font-size: 1.5em; margin-bottom: 8px; text-align: center;} .search-container { width: 100%; } #searchBar { font-size: 0.95em; padding: 10px 15px; } #listingsContainer { grid-template-columns: 1fr; gap: 18px; padding: 0 10px 15px 10px; } .listing-card { padding: 12px; } .listing-card img { height: 160px; margin-bottom: 12px; } .listing-card h3 { font-size: 1.15em; margin-bottom: 8px; } .listing-card p { font-size: 0.85em; margin-bottom: 6px; line-height: 1.4; } .listing-card p.price-display { font-size: 1.05em; margin-bottom: 10px; } .listing-card small { font-size: 0.8em; margin-top: 10px; } .listing-card .action-buttons { margin-top: 12px; gap: 8px; } .listing-card .action-buttons button { padding: 6px 9px; font-size: 0.8em; } .modal-content { padding: 20px 25px; max-width: calc(100% - 30px); } .modal-content h2 { font-size: 1.5em; } .profile-modal-content #profileModalTitle {font-size: 1.6em;} .profile-modal-content .profile-user-identifier {font-size: 0.9em;} .profile-modal-content .profile-section h3 {font-size: 1.15em;} .modal-content form label:not(.checkbox-label) { font-size: 0.95em; } .modal-content form input, .modal-content form textarea { padding: 10px; font-size: 1em; } #itemDetailView { padding: 15px; } #itemDetailContent #detailItemName { font-size: 1.6em;} #itemDetailContent #detailItemPrice.price-display { font-size: 1.2em; } #itemDetailContent #detailItemImage { max-height: 280px; } #messagesView h2, /* #adminMessagesView h2, */ #adminUserManagementView h2 { font-size: 1.6em; } #sendMessageForm { flex-direction: column; /* Stack reply preview and input row */ } .message-input-row { width: 100%; } #sendMessageForm textarea { margin-bottom: 0;} /*.message-form-actions {justify-content: space-between;}*/ .file-attach-label { /* Ensure visibility if this class is still used */ } #fileNameDisplay { text-align: center; margin-top: 5px; width: 100%; } /*#sendMessageForm button[type="submit"].button-primary { width: auto; flex-shrink: 0;}*/ #messageChatPanel, #adminMessageChatPanel { min-height: 350px; } #supportChatBtn { width: 50px; height: 50px; font-size: 1.4em; bottom: 20px; right: 20px; } #messagesView #startNewConversationBtn.button-primary { width: 100%; font-size: 0.95em; padding: 12px 20px;} .user-list-item { flex-direction: column; align-items: flex-start; } .user-list-item .user-actions { margin-top: 10px; margin-left: 0; width: 100%; display: flex; justify-content: flex-start; gap: 5px; } .user-list-item .user-actions button { margin-left: 0;} footer {padding: 15px 10px; font-size: 0.8em;} .footer-content p { margin: 3px 0;} }
+/* style.css */
+
+/* ... (keep all existing styles) ... */
+
+/* --- Enhanced Profile Modal Styling --- */
+#editProfileModal .modal-content {
+    max-width: 500px; /* Can be a bit smaller than other modals */
+    background-color: #ffffff;
+    border-radius: 8px; /* Slightly more modern radius */
+    box-shadow: 0 5px 25px rgba(0,0,0,0.15);
+    padding: 0; /* Remove default padding to control sections precisely */
+}
+
+.profile-modal-content .profile-header {
+    background-color: var(--primary-color); /* Theme color for header */
+    color: white;
+    padding: 25px 30px;
+    text-align: left;
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    margin-bottom: 0; /* No margin for the header */
+    border-bottom: none;
+}
+
+.profile-modal-content #profileModalTitle {
+    margin-bottom: 5px;
+    font-size: 1.7em; /* Smaller title for modal context */
+    font-weight: 600;
+    color: white;
+}
+
+.profile-modal-content .profile-user-identifier {
+    font-size: 0.95em;
+    color: rgba(255,255,255,0.85);
+    margin-bottom: 0;
+    word-break: break-all;
+}
+
+.profile-modal-content .profile-section {
+    padding: 25px 30px; /* Consistent padding for sections */
+    margin-bottom: 0; /* Remove margin */
+    border-bottom: 1px solid #f0f0f0; /* Lighter separator */
+}
+.profile-modal-content .profile-section:last-of-type {
+    border-bottom: none;
+}
+
+.profile-modal-content .profile-section h3 {
+    font-size: 1.15em; /* Slightly smaller section headers */
+    color: var(--dark-color);
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-weight: 500;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e7e7e7; /* Subtle underline for section titles */
+}
+
+#editProfileModal form#editProfileForm div label {
+    font-size: 0.9em;
+    color: #555;
+    margin-bottom: 6px;
+}
+#editProfileModal form#editProfileForm input[type="text"],
+#editProfileModal form#editProfileForm input[type="email"] {
+    background-color: #f8f9fa; /* Light input background */
+    border: 1px solid #ced4da;
+    padding: 10px 12px;
+    font-size: 0.95em;
+}
+#editProfileModal form#editProfileForm input[type="email"][readonly] {
+    background-color: #e9ecef;
+    color: #6c757d;
+    cursor: not-allowed;
+}
+#editProfileModal form#editProfileForm input:focus-visible { /* Consistent focus */
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+}
+
+
+.profile-modal-content button.profile-action-button {
+    width: 100%;
+    margin-top: 10px; /* Spacing between buttons */
+    padding: 11px 20px;
+    font-size: 0.95em;
+    text-transform: none; /* No uppercase */
+    display: flex;
+    align-items: center;
+    justify-content: center; /* Center content (icon + text) */
+    gap: 8px;
+    border-radius: 6px; /* Slightly less rounded */
+    font-weight: 500;
+}
+.profile-modal-content button.profile-action-button:first-of-type {
+    margin-top: 15px; /* More margin for the first button in a section */
+}
+
+/* Adjust submit button in profile form specifically */
+#editProfileModal form#editProfileForm button.button-primary.profile-action-button {
+    background-color: var(--success-color); /* Green for save */
+    border-color: var(--success-color);
+    margin-top: 20px; /* More space before save button */
+}
+#editProfileModal form#editProfileForm button.button-primary.profile-action-button:hover {
+    background-color: var(--success-hover);
+    border-color: var(--success-hover);
+}
+
+
+.profile-modal-content .close-button { /* Modal close button styling */
+    color: rgba(255,255,255,0.7); /* Light color on dark header */
+    top: 15px; /* Adjust position for header */
+    right: 20px;
+    font-size: 28px;
+}
+.profile-modal-content .close-button:hover {
+    color: white;
+}
