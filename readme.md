@@ -1,16 +1,13 @@
-
 # Cleveland Marketplace
 
-Cleveland Marketplace is a web application that allows users to buy and sell items by posting listings. It features an initial site-wide verification step, user authentication (including optional two-factor authentication for logins), item posting, item editing/deletion, an item detail view, a commenting system, user profile editing, and a direct messaging system. A superadmin role has extended privileges.
+Cleveland Marketplace is a web application that allows users to buy and sell items by posting listings. It features user authentication (including optional two-factor authentication for logins), item posting, item editing/deletion, an item detail view, a commenting system, user profile editing, and a direct messaging system. A superadmin role has extended privileges.
 
 ## Features
 
-*   **Site Access Gate:**
-    *   An initial verification step (using a demo 2FA-like code) is required before any user can access the main marketplace content or features. This is session-based.
 *   **User Authentication:**
     *   Signup with email, password, and optional display name.
     *   Login with email and password.
-    *   **Two-Factor Authentication (Login):** Users can enable 2FA for their accounts. If enabled, a 6-digit code (demo code provided via alert) is required after successful password entry.
+    *   **Two-Factor Authentication (Login):** Users can enable 2FA for their accounts. If enabled, a 6-digit code (demo code provided via an alert) is required after successful password entry.
     *   Logout.
     *   Password Reset functionality.
     *   "My Account" panel to manage display name, toggle 2FA for login, access messages, and logout.
@@ -18,7 +15,8 @@ Cleveland Marketplace is a web application that allows users to buy and sell ite
     *   Users can post new items with name, description, price (or mark as free), contact info, and an optional image (uploaded or via URL).
     *   Browse all listings.
     *   Search listings by keywords.
-    *   (Future: Filter by price, free items; Sort by newest, oldest, price).
+    *   Filter by price, or show only free items.
+    *   Sort by newest, oldest, price (low to high, high to low).
     *   "Load More" functionality for listings.
 *   **Item Detail Page:**
     *   View full details of an item, including image, description, price, contact info, and seller's display name/email.
@@ -53,7 +51,7 @@ Cleveland Marketplace is a web application that allows users to buy and sell ite
 *   **Progressive Web App (PWA) Features:**
     *   Manifest file for "Add to Home Screen" capability.
     *   Basic service worker for app shell caching and an offline page.
-    *   (Future/Placeholder: Background sync, push notifications).
+    *   Basic implementation of background sync and push notification listeners (further development for robust functionality required).
 *   **Analytics:**
     *   Google Analytics 4 (GA4) integration for tracking page views and events.
 
@@ -69,7 +67,6 @@ To run this project locally or deploy it:
 
 1.  **Create Project Files:**
     *   `index.html`: Main application page.
-    *   `gate.html`: The new initial site access verification page.
     *   `style.css`: Styles for the application.
     *   `script.js`: All JavaScript logic for the application.
     *   `manifest.json`: PWA manifest file.
@@ -116,12 +113,11 @@ To run this project locally or deploy it:
 
 4.  **Running the Application:**
     *   Serve the files using a local web server (e.g., VS Code Live Server, Python's `http.server`, Node.js `serve` package).
-    *   Open `gate.html` in your browser. This is the new entry point.
+    *   Open `index.html` in your browser. This is the main entry point.
 
 ## Development Notes
 
-*   **Site Access Gate:** The initial verification is session-based. If the user closes the tab/browser, they'll need to verify again.
 *   **2FA for Login:** This is a separate feature users can enable in their "My Account" panel. It uses a demo code provided via an `alert`.
 *   **Error Handling:** The script includes basic error handling and toast notifications. Check the browser console for more detailed error messages.
 *   **Security:** Row Level Security (RLS) in Supabase is critical. Ensure your policies are correctly configured to prevent unauthorized data access.
-*   **PWA:** The service worker (`sw.js`) provides basic app shell caching. For full offline capabilities or more advanced PWA features, further development of the service worker is needed.
+*   **PWA:** The service worker (`sw.js`) provides basic app shell caching and includes listeners for background sync and push notifications. For full offline capabilities or more advanced PWA features, further development of the service worker logic may be needed.

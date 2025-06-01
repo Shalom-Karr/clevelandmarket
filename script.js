@@ -106,10 +106,9 @@ function updateAuthUI(user) {
         profileModalUserEmail.textContent = '';
     }
     
-    if (supportChatBtn && sessionStorage.getItem('siteAccessGranted') === 'true') {
+    // Support button always visible now, as there's no site gate
+    if (supportChatBtn) {
         supportChatBtn.style.display = 'block';
-    } else if (supportChatBtn) {
-        supportChatBtn.style.display = 'none';
     }
 
     if (!isLoggedIn) {
@@ -122,7 +121,9 @@ function updateAuthUI(user) {
         generated2FACode = ''; // For login 2FA
         tempEmailFor2FA = '';   // For login 2FA
     }
-    if (typeof fetchListings === 'function' && sessionStorage.getItem('siteAccessGranted') === 'true') {
+    // Always call fetchListings regardless of login status.
+    // This ensures listings are visible even if no one is logged in or if it's a bot.
+    if (typeof fetchListings === 'function') { 
         fetchListings(true);
     }
 }
@@ -650,8 +651,9 @@ function setupAuthListeners() {
             const userChanged = session?.user && previousUserId !== session.user.id;
             updateAuthUI(session ? session.user : null);
             if (currentUser && (userJustLoggedIn || userChanged) && loginTwoFactorAuthModal && loginTwoFactorAuthModal.style.display !== 'flex') {
-                requestNotificationPermission(); 
+                requestNotificationPermission();
                 registerPeriodicSync();
+                await handleDeepLinkAfterLogin();
             }
             if (loginTwoFactorAuthModal && loginTwoFactorAuthModal.style.display !== 'flex') {
                 if (userJustLoggedIn || (userChanged && initialDeepLinkConversationId)) {
@@ -718,7 +720,7 @@ async function showItemDetailPage(itemId) {
         if (!item) { if (detailContentParent) { detailContentParent.innerHTML = '<p class="loading-text" style="color:red;">Item not found.</p>';} showToast("Item not found.", "error"); return; }
         const imgEl = getElement('detailItemImage'); const nameEl = getElement('detailItemName'); const priceEl = getElement('detailItemPrice'); const descEl = getElement('detailItemDescription'); const contactEl = getElement('detailItemContact'); const sellerInfoDiv = getElement('detailItemSellerInfo'); const sellerDisplayEl = getElement('sellerNameDisplay'); const dateEl = getElement('detailItemPostedDate');
         let noImgPlaceholder = detailContentParent.querySelector('.no-image-placeholder-detail'); if(noImgPlaceholder) noImgPlaceholder.remove();
-        if (imgEl) { if (item.image_url) { imgEl.src = item.image_url; imgEl.alt = item.name || 'Listing image'; imgEl.style.display = 'block'; imgEl.onerror = () => { imgEl.style.display='none'; noImgPlaceholder = document.createElement('div'); noImgPlaceholder.className = 'no-image-placeholder-detail'; noImgPlaceholder.textContent = 'Image not available'; const imageWrapper = detailContentParent.querySelector('.image-detail-wrapper') || detailContentParent; imageWrapper.prepend(noImgPlaceholder); }; } else { imgEl.style.display = 'none'; noImgPlaceholder = document.createElement('div'); noImgPlaceholder.className = 'no-image-placeholder-detail'; noImgPlaceholder.textContent = 'No Image Provided'; const imageWrapper = detailContentParent.querySelector('.image-detail-wrapper') || detailContentParent; imageWrapper.prepend(noImgPlaceholder); } }
+        if (imgEl) { if (item.image_url) { imgEl.src = item.image_url; imgEl.alt = item.name || 'Listing image'; imgEl.style.display = 'block'; imgEl.onerror = () => { imgEl.style.display = 'none'; noImgPlaceholder = document.createElement('div'); noImgPlaceholder.className = 'no-image-placeholder-detail'; noImgPlaceholder.textContent = 'Image not available'; const imageWrapper = detailContentParent.querySelector('.image-detail-wrapper') || detailContentParent; imageWrapper.prepend(noImgPlaceholder); }; } else { imgEl.style.display = 'none'; noImgPlaceholder = document.createElement('div'); noImgPlaceholder.className = 'no-image-placeholder-detail'; noImgPlaceholder.textContent = 'No Image Provided'; const imageWrapper = detailContentParent.querySelector('.image-detail-wrapper') || detailContentParent; imageWrapper.prepend(noImgPlaceholder); } }
         if (nameEl) nameEl.textContent = item.name || 'N/A';
         let displayPrice = 'N/A'; if (item.price) { const priceNum = parseFloat(item.price); if (item.price.toString().toLowerCase() === 'free' || priceNum === 0) displayPrice = 'Free'; else if (!isNaN(priceNum)) displayPrice = '$' + priceNum.toFixed(2); else displayPrice = item.price; }
         if (priceEl) priceEl.textContent = displayPrice;
@@ -1189,20 +1191,12 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     if (!supabaseClient) {
         if (listingsContainer) listingsContainer.innerHTML = "<p class='loading-text' style='color:red; font-weight:bold;'>App Error: Backend connection failed.</p>";
-        hideMainApp();
+        hideMainApp(); // Hide if critical error
         return; 
     }
     
-    if (sessionStorage.getItem('siteAccessGranted') === 'true') {
-        await initializeMainApplicationLogic();
-    } else {
-        if (!window.location.href.includes('gate.html')) {
-            window.location.href = 'gate.html';
-            return;
-        }
-        // If on gate.html and access not granted, just hide main app elements if they exist (they shouldn't on gate.html)
-        hideMainApp();
-    }
+    // Removed the entire gate logic block, now initialize main app directly
+    await initializeMainApplicationLogic();
     
     // Window click listener for modals in index.html (e.g., login, signup, item modals)
     window.addEventListener('click', (event) => {
@@ -1234,14 +1228,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 async function initializeMainApplicationLogic() {
-    if (sessionStorage.getItem('siteAccessGranted') !== 'true') {
-        console.warn("Attempted to initialize main app without site access grant.");
-        hideMainApp();
-        if (!window.location.href.includes('gate.html')) {
-            // window.location.href = 'gate.html'; // Re-evaluate if needed
-        }
-        return;
-    }
+    // Show main app elements now that we're past any gate concept (removed all gate checks from here)
     showMainApp();
     console.log("Main application logic initializing...");
 
@@ -1265,22 +1252,23 @@ async function initializeMainApplicationLogic() {
 
     try {
         const { data: { session } } = await supabaseClient.auth.getSession();
-        if (session && session.user) {
-            if (currentUser && (!loginTwoFactorAuthModal || loginTwoFactorAuthModal.style.display !== 'flex')) {
-                requestNotificationPermission();
-                registerPeriodicSync();
-                await handleDeepLinkAfterLogin();
-            }
-        } else {
-            updateAuthUI(null);
-            if (initialDeepLinkConversationId) {
-                 showModal(loginModal);
-                 showToast("Please log in to view the conversation.", "info");
-            }
+        // Always update UI and fetch listings based on the session result
+        // This line ensures currentUser is correctly set and fetchListings is triggered on initial load
+        updateAuthUI(session ? session.user : null); 
+
+        if (currentUser) { // currentUser is now correctly set by the updateAuthUI call above
+            requestNotificationPermission();
+            registerPeriodicSync();
+            await handleDeepLinkAfterLogin();
+        } else if (initialDeepLinkConversationId) {
+            // If there's a deep link but no current user, prompt login
+            showModal(loginModal);
+            showToast("Please log in to view the conversation.", "info");
         }
     } catch (e) {
         console.error("Error during initial session check:", e);
-        updateAuthUI(null);
+        // Fallback if the session check itself fails (e.g., network error, misconfigured Supabase)
+        updateAuthUI(null); 
         if (initialDeepLinkConversationId) { showModal(loginModal); showToast("Please log in.", "info"); }
     }
     trackPageView(window.location.pathname === '/' || window.location.pathname === '' ? '/listings' : window.location.pathname, document.title);
@@ -1321,7 +1309,7 @@ function setupDynamicEventListeners() {
     if (itemDetailView) { itemDetailView.addEventListener('click', function(event) { if (event.target && event.target.id === 'loginToCommentLink') { event.preventDefault(); showModal(loginModal); if (loginMessage) { loginMessage.textContent = ''; loginMessage.className = 'form-message'; } if (loginForm) loginForm.reset(); } if (event.target && event.target.classList.contains('delete-comment-btn')) { const commentId = event.target.dataset.commentId; if (commentId) deleteComment(commentId); } }); }
     
     if (sendMessageForm) { sendMessageForm.addEventListener('submit', async (event) => { event.preventDefault(); if (!currentUser || !currentOpenConversationId || !newMessageContentField) return; const content = newMessageContentField.value.trim(); const file = messageAttachmentInput.files[0]; if (!content && !file) return; showButtonLoadingState(sendMessageButton, true); let attachment_url = null; let attachment_filename = null; let attachment_mimetype = null; let messageSentOrQueued = false; try { if (file) { const sanitizedFilename = file.name.replace(/\s+/g, '_').replace(/[^\w.-]/g, ''); const pathInBucket = currentOpenConversationId + '/' + currentUser.id + '/' + Date.now() + '_' + sanitizedFilename; showToast("Uploading file...", "info", 20000); const { data: uploadData, error: uploadError } = await supabaseClient.storage.from(STORAGE_BUCKET_NAME).upload(pathInBucket, file, { cacheControl: '3600', upsert: false }); if (uploadError) throw new Error('File upload failed: ' + uploadError.message); showToast("File uploaded. Getting URL...", "info", 2000); const { data: urlData } = supabaseClient.storage.from(STORAGE_BUCKET_NAME).getPublicUrl(pathInBucket); if (!urlData || !urlData.publicUrl) throw new Error('Could not get public URL for uploaded file.'); attachment_url = urlData.publicUrl; attachment_filename = file.name; attachment_mimetype = file.type; showToast("File URL obtained.", "info", 1000); } const messageData = { conversation_id: currentOpenConversationId, sender_id: currentUser.id, content: content || null, attachment_url: attachment_url, attachment_filename: attachment_filename, attachment_mimetype: attachment_mimetype, parent_message_id: replyingToMessageId, thread_id: replyingToThreadId, reply_snippet: replyingToMessageId ? `Replying to ${replyingToUser}: "${replyingToSnippet}"` : null }; if (navigator.onLine) { const { error: insertError } = await supabaseClient.from('messages').insert(messageData); if (insertError) throw new Error('Error sending message: ' + insertError.message); messageSentOrQueued = true; } else { await queueDataForSync(PENDING_MESSAGES_STORE, messageData, 'send-pending-data'); showToast("Message queued. Will send when online.", "info"); messageSentOrQueued = true; } if (messageSentOrQueued) { newMessageContentField.value = ''; if (messageAttachmentInput) messageAttachmentInput.value = null; if (fileNameDisplay) fileNameDisplay.textContent = ''; clearReplyState(); if (sendMessageButton) { sendMessageButton.classList.remove('has-text-or-file'); sendMessageButton.disabled = true; } if (navigator.onLine) { fetchMessagesForConversation(currentOpenConversationId, false, false); fetchUserConversations(); } trackGAEvent('send_message', { conversation_id: currentOpenConversationId, has_attachment: !!file, is_reply: !!replyingToMessageId, was_queued: !navigator.onLine }); } } catch (error) { console.error("Error in sendMessageForm:", error); showToast('Error: ' + error.message, "error", 5000); } finally { showButtonLoadingState(sendMessageButton, false); } }); }
-    if (messageSellerBtn) { messageSellerBtn.addEventListener('click', async () => { if (!currentUser) { showToast("Please log in to message.", "info"); showModal(loginModal); return; } const sellerId = messageSellerBtn.dataset.sellerId; const listingId = messageSellerBtn.dataset.listingId; let sellerNameForDisplay = messageSellerBtn.dataset.sellerName || "Seller"; let topicForDisplay = messageSellerBtn.dataset.listingName || "this item"; if (sellerId === SUPERADMIN_USER_ID) sellerNameForDisplay = "Support Team"; if (currentUser.id === sellerId) { showToast("You cannot message yourself.", "info"); return; } if (!sellerId) { showToast("Seller information is missing for this item.", "error"); return; } showToast("Initiating conversation...", "info"); try { const { data: convoData, error: rpcError } = await supabaseClient.rpc('get_or_create_conversation', { user1_id: currentUser.id, user2_id: sellerId, p_listing_id: listingId }); if (rpcError) throw rpcError; if (convoData && convoData.length > 0 && convoData[0].id) { let finalTopic = topicForDisplay; const returnedListingId = convoData[0].listing_id; if (sellerId === SUPERADMIN_USER_ID && !returnedListingId) finalTopic = "Support Inquiry"; showMessagesView(); openConversation(convoData[0].id, sellerNameForDisplay, finalTopic); trackGAEvent('start_conversation', { listing_id: listingId, seller_id: sellerId }); } else { showToast("Could not start or find conversation. Users may be blocked or an error occurred.", "error"); } } catch (error) { showToast("Error initiating message: " + error.message, "error"); trackGAEvent('start_conversation_failure', { listing_id: listingId, seller_id: sellerId, error_message: error.message }); } }); }
+    if (messageSellerBtn) { messageSellerBtn.addEventListener('click', async () => { if (!currentUser) { showToast("Please log in to message.", "info"); showModal(loginModal); return; } const sellerId = messageSellerBtn.dataset.sellerId; const listingId = messageSellerBtn.dataset.listingId; let sellerNameForDisplay = messageSellerBtn.dataset.sellerName || "Seller"; let topicForDisplay = messageSellerBtn.dataset.listingName || "this item"; if (sellerId === SUPERADMIN_USER_ID) sellerNameForDisplay = "Support Team"; if (currentUser.id === sellerId) { showToast("You cannot message yourself.", "info"); return; } if (!sellerId) { showToast("Seller information is missing for this item.", "error"); return; } showToast("Initiating conversation...", "info"); try { const { data: convoData, error: rpcError } = await supabaseClient.rpc('get_or_create_conversation', { user1_id: currentUser.id, user2_id: sellerId, p_listing_id: null }); if (rpcError) throw rpcError; if (convoData && convoData.length > 0 && convoData[0].id) { let finalTopic = topicForDisplay; const returnedListingId = convoData[0].listing_id; if (sellerId === SUPERADMIN_USER_ID && !returnedListingId) finalTopic = "Support Inquiry"; showMessagesView(); openConversation(convoData[0].id, sellerNameForDisplay, finalTopic); trackGAEvent('start_conversation', { listing_id: listingId, seller_id: sellerId }); } else { showToast("Could not start or find conversation. Users may be blocked or an error occurred.", "error"); } } catch (error) { showToast("Error initiating message: " + error.message, "error"); trackGAEvent('start_conversation_failure', { listing_id: listingId, seller_id: sellerId, error_message: error.message }); } }); }
 
     if (searchBar) { searchBar.addEventListener('input', (e) => { clearTimeout(searchBar.searchTimeout); searchBar.searchTimeout = setTimeout(() => { currentSearchTerm = e.target.value.trim(); if(currentSearchTerm) trackGAEvent('search', {search_term: currentSearchTerm}); fetchListings(true); }, 500); }); }
     if (applyFiltersBtn) { applyFiltersBtn.addEventListener('click', () => { currentMinPrice = minPriceInput.value !== '' ? parseFloat(minPriceInput.value) : null; currentMaxPrice = maxPriceInput.value !== '' ? parseFloat(maxPriceInput.value) : null; currentFilterFreeOnly = filterFreeItemsCheckbox.checked; currentSortOption = sortListingsSelect.value; trackGAEvent('filter_sort_apply', {min_price: currentMinPrice, max_price: currentMaxPrice, free_only: currentFilterFreeOnly, sort_by: currentSortOption }); fetchListings(true); }); }
